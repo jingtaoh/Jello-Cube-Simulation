@@ -10,3 +10,4 @@
 *.app
 createWorld
 jello
+.DS_Store
