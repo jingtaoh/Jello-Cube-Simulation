@@ -4,7 +4,7 @@
   "Jello Cube" Assignment 1 starter code
 
   Your name:
-  <write your name here>
+  <Jingtao Huang>
 
 */
 
@@ -52,7 +52,7 @@ void myinit()
   return; 
 }
 
-void reshape(int w, int h) 
+void reshape(int w, int h)
 {
   // Prevent a divide by zero, when h is zero.
   // You can't make a window of zero height.
