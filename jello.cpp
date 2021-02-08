@@ -97,41 +97,49 @@ void display()
 
   // global ambient light
   GLfloat aGa[] = { 0.0, 0.0, 0.0, 0.0 };
-  
+
+  // TODO: improve lighting environment
   // light 's ambient, diffuse, specular
-  GLfloat lKa0[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat lKd0[] = { 1.0, 1.0, 1.0, 1.0 };
-  GLfloat lKs0[] = { 1.0, 1.0, 1.0, 1.0 };
+  GLfloat lKa0[] = { 0.0, 0.0, 0.0, 1.0 };  // black
+  GLfloat lKd0[] = { 1.0, 1.0, 1.0, 1.0 };  // white
+  GLfloat lKs0[] = { 1.0, 1.0, 1.0, 1.0 };  // white
 
-  GLfloat lKa1[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat lKd1[] = { 1.0, 0.0, 0.0, 1.0 };
-  GLfloat lKs1[] = { 1.0, 0.0, 0.0, 1.0 };
+  GLfloat lKa1[] = { 0.0, 0.0, 0.0, 1.0 };  // black
+  GLfloat lKd1[] = { 1.0, 0.0, 0.0, 1.0 };  // red
+  GLfloat lKs1[] = { 1.0, 0.0, 0.0, 1.0 };  // red
 
-  GLfloat lKa2[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat lKd2[] = { 1.0, 1.0, 0.0, 1.0 };
-  GLfloat lKs2[] = { 1.0, 1.0, 0.0, 1.0 };
+  GLfloat lKa2[] = { 0.0, 0.0, 0.0, 1.0 };  // black
+  GLfloat lKd2[] = { 1.0, 1.0, 0.0, 1.0 };  // yellow
+  GLfloat lKs2[] = { 1.0, 1.0, 0.0, 1.0 };  // yellow
 
-  GLfloat lKa3[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat lKd3[] = { 0.0, 1.0, 1.0, 1.0 };
-  GLfloat lKs3[] = { 0.0, 1.0, 1.0, 1.0 };
+  GLfloat lKa3[] = { 0.0, 0.0, 0.0, 1.0 };  // black
+  GLfloat lKd3[] = { 0.0, 1.0, 1.0, 1.0 };  // cyan
+  GLfloat lKs3[] = { 0.0, 1.0, 1.0, 1.0 };  // cyan
 
-  GLfloat lKa4[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat lKd4[] = { 0.0, 0.0, 1.0, 1.0 };
-  GLfloat lKs4[] = { 0.0, 0.0, 1.0, 1.0 };
+  GLfloat lKa4[] = { 0.0, 0.0, 0.0, 1.0 };  // black
+  GLfloat lKd4[] = { 0.0, 0.0, 1.0, 1.0 };  // blue
+  GLfloat lKs4[] = { 0.0, 0.0, 1.0, 1.0 };  // blue
 
-  GLfloat lKa5[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat lKd5[] = { 1.0, 0.0, 1.0, 1.0 };
-  GLfloat lKs5[] = { 1.0, 0.0, 1.0, 1.0 };
+  GLfloat lKa5[] = { 0.0, 0.0, 0.0, 1.0 };  // black
+  GLfloat lKd5[] = { 1.0, 0.0, 1.0, 1.0 };  // purple
+  GLfloat lKs5[] = { 1.0, 0.0, 1.0, 1.0 };  // purple
 
-  GLfloat lKa6[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat lKd6[] = { 1.0, 1.0, 1.0, 1.0 };
-  GLfloat lKs6[] = { 1.0, 1.0, 1.0, 1.0 };
+  GLfloat lKa6[] = { 0.0, 0.0, 0.0, 1.0 };  // black
+  GLfloat lKd6[] = { 1.0, 1.0, 1.0, 1.0 };  // white
+  GLfloat lKs6[] = { 1.0, 1.0, 1.0, 1.0 };  // white
 
-  GLfloat lKa7[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat lKd7[] = { 0.0, 1.0, 1.0, 1.0 };
-  GLfloat lKs7[] = { 0.0, 1.0, 1.0, 1.0 };
+  GLfloat lKa7[] = { 0.0, 0.0, 0.0, 1.0 };  // black
+  GLfloat lKd7[] = { 0.0, 1.0, 1.0, 1.0 };  // cyan
+  GLfloat lKs7[] = { 0.0, 1.0, 1.0, 1.0 };  // cyan
 
   // light positions and directions
+  /*    3-------2
+   *   /|      /|
+   *  7-|-----6 |
+   *  | 0-----|-1
+   *  |/      |/
+   *  4-------5
+   */
   GLfloat lP0[] = { -1.999, -1.999, -1.999, 1.0 };
   GLfloat lP1[] = { 1.999, -1.999, -1.999, 1.0 };
   GLfloat lP2[] = { 1.999, 1.999, -1.999, 1.0 };
@@ -143,9 +151,9 @@ void display()
   
   // jelly material color
 
-  GLfloat mKa[] = { 0.0, 0.0, 0.0, 1.0 };
-  GLfloat mKd[] = { 0.3, 0.3, 0.3, 1.0 };
-  GLfloat mKs[] = { 1.0, 1.0, 1.0, 1.0 };
+  GLfloat mKa[] = { 0.0, 0.0, 0.0, 1.0 };   // black
+  GLfloat mKd[] = { 0.3, 0.3, 0.3, 1.0 };   // grey
+  GLfloat mKs[] = { 1.0, 1.0, 1.0, 1.0 };   // white
   GLfloat mKe[] = { 0.0, 0.0, 0.0, 1.0 };
 
   /* set up lighting */
@@ -239,8 +247,8 @@ int main (int argc, char ** argv)
   /* double buffered window, use depth testing, 640x480 */
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
   
-  windowWidth = 640;
-  windowHeight = 480;
+  windowWidth = 1280 /*640*/;
+  windowHeight = 960 /*480*/;
   glutInitWindowSize (windowWidth, windowHeight);
   glutInitWindowPosition (0,0);
   glutCreateWindow ("Jello cube");
