@@ -14,6 +14,7 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8]);
 // updates the jello structure accordingly
 void Euler(struct world * jello);
 void RK4(struct world * jello);
+void MoveDown(struct world * jello);
 
 #endif
 

@@ -133,12 +133,14 @@ void display()
   GLfloat lKs7[] = { 0.0, 1.0, 1.0, 1.0 };  // cyan
 
   // light positions and directions
-  /*    3-------2
+  /*        Z
+   *    4-------7
    *   /|      /|
-   *  7-|-----6 |
-   *  | 0-----|-1
+   *  5-|-----6 |  Y
+   *  | 0-----|-3
    *  |/      |/
-   *  4-------5
+   *  1-------2
+   *      X
    */
   GLfloat lP0[] = { -1.999, -1.999, -1.999, 1.0 };
   GLfloat lP1[] = { 1.999, -1.999, -1.999, 1.0 };
@@ -226,6 +228,7 @@ void doIdle()
   if (pause == 0)
   {
     // insert code which appropriately performs one step of the cube simulation:
+    MoveDown(&jello);
   }
 
   glutPostRedisplay();
