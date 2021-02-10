@@ -8,12 +8,48 @@
 #include "jello.h"
 #include "physics.h"
 
+/**
+ * Compute elastic force between two mass point
+ * @param k - Hook's elasticity coefficient
+ * @param r - rest length
+ * @param p1 - Position for 1st mass point
+ * @param p2 - Position for 2nd mass
+ * @param e - Elastic force
+ */
+void computeElasticForce(double k, double r, struct point p1, struct point p2, struct point e)
+{
+    point l;
+    pDIFFERENCE(p1, p2, l);
+    double length;
+    pNORMALIZE(l); // compute length
+    pMULTIPLY(l, - k * (length - r), e);
+}
+
+ /**
+  * Compute damping for a mass point
+  * @param k - Damping coefficient
+  * @param v - Velocity of mass point
+  * @param d - Damping
+  */
+void computeDamping(double k, struct point v, struct point d)
+{
+    pMULTIPLY(v, -k, d);
+}
+
 /* Computes acceleration to every control point of the jello cube, 
    which is in state given by 'jello'.
    Returns result in array 'a'. */
 void computeAcceleration(struct world * jello, struct point a[8][8][8])
 {
   /* for you to implement ... */
+  // TODO: Implement a = F / m
+  //    - hook force
+  //    - damping
+  //    - structural springs - check rendering
+  //    - shear springs - check rendering
+  //    - bend springs  - check rendering
+  //    - external forces
+  //    - bouncing off the walls
 }
 
 /* performs one step of Euler Integration */
@@ -140,11 +176,12 @@ void RK4(struct world * jello)
 void MoveDown(struct world * jello)
 {
     int i,j,k;
+    double velocity = 1.0;
 
     for (i=0; i<=7; i++)
         for (j=0; j<=7; j++)
             for (k=0; k<=7; k++)
             {
-                jello->p[i][j][k].y -= 0.001;
+                jello->p[i][j][k].z -= jello->dt * velocity;
             }
 }
