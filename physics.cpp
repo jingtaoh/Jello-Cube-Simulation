@@ -9,14 +9,14 @@
 #include "physics.h"
 
 /**
- * Compute elastic force between two mass point
+ * Compute elastic force between two mass points
  * @param k - Hook's elasticity coefficient
  * @param r - rest length
- * @param p1 - Position for 1st mass point
- * @param p2 - Position for 2nd mass
+ * @param p1 - Position of 1st mass point
+ * @param p2 - Position of 2nd mass point
  * @param e - Elastic force
  */
-void computeElasticForce(double k, double r, struct point p1, struct point p2, struct point e)
+void computeElasticForce(double k, double r, const struct point & p1, const struct point & p2, struct point & e)
 {
     point l;
     pDIFFERENCE(p1, p2, l);
@@ -26,14 +26,25 @@ void computeElasticForce(double k, double r, struct point p1, struct point p2, s
 }
 
  /**
-  * Compute damping for a mass point
+  * Compute damping force between two mass points
   * @param k - Damping coefficient
-  * @param v - Velocity of mass point
-  * @param d - Damping
+  * @param p1 - Position of 1st mass point
+  * @param p2 - Position of 2nd mass point
+  * @param v1 - Velocity of 1st mass point
+  * @param v2 - Velocity of 2nd mass point
+  * @param d - Damping force
   */
-void computeDamping(double k, struct point v, struct point d)
+void computeDamping(double k, const struct point & p1, const struct point & p2, const struct point & v1, const struct point & v2, struct point & d)
 {
-    pMULTIPLY(v, -k, d);
+    point l;
+    pDIFFERENCE(p1, p2, l);
+    point v;
+    pDIFFERENCE(v1, v2, v);
+    double length;
+    pNORMALIZE(l);
+    double velocity;
+    DOTPRODUCTp(v, l, velocity);
+    pMULTIPLY(l, -k * velocity, d);
 }
 
 /* Computes acceleration to every control point of the jello cube, 

@@ -243,6 +243,36 @@ int main (int argc, char ** argv)
     exit(0);
   }
 
+  // test dotproduct
+  point v1, v2;
+  double dotProduct1, dotProduct2;
+  v1.x = -1; v1.y = 1; v1.z = 0;
+  v2.x = 1; v2.y = 1; v2.z = 1;
+  DOTPRODUCT(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, dotProduct1);
+  DOTPRODUCTp(v1, v2, dotProduct2);
+  std::cout << "dotProduct1: " << dotProduct1 << std::endl;
+  std::cout << "dotProduct2: " << dotProduct2 << std::endl;
+
+  // test Elastic Force
+  double k_hook = 2.0, r = 0.5;
+  point p1, p2;
+  p1.x = 0; p1.y = 0; p1.z = 0;
+  p2.x = 0.4; p2.y = 0; p2.z = 0;
+  point e;
+  computeElasticForce(k_hook, r, p1, p2, e);
+  pPRINT(e);
+
+  // test Damping
+  double k_d = 1.0;
+  p1.x = 0; p1.y = 0; p1.z = 0;
+  p2.x = 2; p2.y = 0; p2.z = 0;
+  v1.x = 1; v1.y = 0; v1.z = 0;
+  v2.x = 0; v2.y = 0; v2.z = 0;
+  point d;
+  computeDamping(k_d, p1, p2, v1, v2, d);
+  pPRINT(d);
+
+
   readWorld(argv[1],&jello);
 
   glutInit(&argc,argv);

@@ -15,6 +15,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 
 #define pi 3.141592653589793238462643383279 
 
@@ -59,6 +60,20 @@ struct world
 };
 
 extern struct world jello;
+
+// computes dotproduct of three vectors, which are given as points
+// struct point vector1, vector2, dest
+// result goes into dest
+#define DOTPRODUCTp(vector1,vector2,val) \
+    DOTPRODUCT( (vector1).x, (vector1).y, (vector1).z,\
+                (vector2).x, (vector2).y, (vector2).z,\
+                (val) )
+
+// computes dotproduct of three vectors, which are specified by floating-point coordinates
+// double x1,y1,z1,x2,y2,z2,x,y,z
+// result goes into x,y,z
+#define DOTPRODUCT(x1,y1,z1,x2,y2,z2,value) \
+    value = (x1 * x2) + (y1 * y2) + (z1 * z2)
 
 // computes crossproduct of three vectors, which are given as points
 // struct point vector1, vector2, dest
@@ -130,6 +145,11 @@ extern struct world jello;
   (dest).x = (src).x * (scalar);\
   (dest).y = (src).y * (scalar);\
   (dest).z = (src).z * (scalar);
+
+// output point in the following format
+// point: (point.x, point.y, point.z)
+#define pPRINT(point) \
+    std::cout << (#point) << ": (" << (point).x << ", " << (point).y << ", " << (point).z << ")" << std::endl;
 
 #endif
 

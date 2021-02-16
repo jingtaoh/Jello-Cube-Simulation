@@ -8,8 +8,8 @@
 #ifndef _PHYSICS_H_
 #define _PHYSICS_H_
 
-void computeElasticForce(double k, double r, struct point p1, struct point p2, struct point e);
-void computeDamping(double k, struct point v, struct point d);
+void computeElasticForce(double k, double r, const struct point & p1, const struct point & p2, struct point & e);
+void computeDamping(double k, const struct point & p1, const struct point & p2, const struct point & v1, const struct point & v2, struct point & d);
 
 void computeAcceleration(struct world * jello, struct point a[8][8][8]);
 
