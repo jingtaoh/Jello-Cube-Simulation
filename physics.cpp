@@ -9,6 +9,80 @@
 #include "physics.h"
 
 /**
+ * generate 3 kinds of springs from the world configuration
+ * @param jello - Jello structure
+ */
+void generateSprings(const struct world & jello)
+{
+    int i,j,k,ip,jp,kp;
+
+    #define PROCESS_NEIGHBOUR(di,dj,dk,springType,scale) \
+        ip=i+(di);\
+        jp=j+(dj);\
+        kp=k+(dk);\
+        if\
+        (!( (ip>7) || (ip<0) ||\
+            (jp>7) || (jp<0) ||\
+            (kp>7) || (kp<0) )) \
+        {\
+            (springType).push_back(spring(i, j, k, ip, jp, kp,scale)); \
+        }\
+
+    for (i=0; i<=7; i++)
+        for (j=0; j<=7; j++)
+            for (k=0; k<=7; k++)
+            {
+                double scale;
+                // structural springs
+                {
+                    scale =1;
+                    PROCESS_NEIGHBOUR(1,0,0,structuralSprinps,scale);
+                    PROCESS_NEIGHBOUR(0,1,0,structuralSprinps,scale);
+                    PROCESS_NEIGHBOUR(0,0,1,structuralSprinps,scale);
+                    PROCESS_NEIGHBOUR(-1,0,0,structuralSprinps,scale);
+                    PROCESS_NEIGHBOUR(0,-1,0,structuralSprinps,scale);
+                    PROCESS_NEIGHBOUR(0,0,-1,structuralSprinps,scale);
+                }
+                // shear springs
+                {
+                    scale = sqrt(2);
+                    PROCESS_NEIGHBOUR(1,1,0,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(-1,1,0,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(-1,-1,0,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(1,-1,0,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(0,1,1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(0,-1,1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(0,-1,-1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(0,1,-1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(1,0,1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(-1,0,1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(-1,0,-1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(1,0,-1,shearSprings,scale);
+
+                    scale = sqrt(3);
+                    PROCESS_NEIGHBOUR(1,1,1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(-1,1,1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(-1,-1,1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(1,-1,1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(1,1,-1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(-1,1,-1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(-1,-1,-1,shearSprings,scale);
+                    PROCESS_NEIGHBOUR(1,-1,-1,shearSprings,scale);
+                }
+                // bend springs
+                {
+                    scale = 2;
+                    PROCESS_NEIGHBOUR(2,0,0,bendSprings,scale);
+                    PROCESS_NEIGHBOUR(0,2,0,bendSprings,scale);
+                    PROCESS_NEIGHBOUR(0,0,2,bendSprings,scale);
+                    PROCESS_NEIGHBOUR(-2,0,0,bendSprings,scale);
+                    PROCESS_NEIGHBOUR(0,-2,0,bendSprings,scale);
+                    PROCESS_NEIGHBOUR(0,0,-2,bendSprings,scale);
+                }
+            }
+}
+
+/**
  * Compute elastic force between two mass points
  * @param k - Hook's elasticity coefficient
  * @param r - rest length
@@ -54,13 +128,104 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
 {
   /* for you to implement ... */
   // TODO: Implement a = F / m
-  //    - hook force
-  //    - damping
-  //    - structural springs - check rendering
-  //    - shear springs - check rendering
-  //    - bend springs  - check rendering
-  //    - external forces
   //    - bouncing off the walls
+
+  double invM = 1 / jello->mass;
+//  std::cout << "Mass: " << jello->mass << std::endl;
+//  std::cout << "invM: " << invM << std::endl;
+
+  // structural springs
+  for (const auto &s : structuralSprinps)
+  {
+      point e,d;
+      computeElasticForce(jello->kElastic, s.r, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],e);
+      computeDamping(jello->dElastic, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],
+                     jello->v[s.i1][s.j1][s.k1], jello->v[s.i2][s.j2][s.k2],d);
+//      pPRINT(e);
+//      pPRINT(d);
+      pMULTIPLY(e, invM, e);
+      pMULTIPLY(d, invM, d);
+//      pPRINT(e);
+//      pPRINT(d);
+      pSUM(a[s.i1][s.j1][s.k1],e,a[s.i1][s.j1][s.k1]);
+      pSUM(a[s.i1][s.j1][s.k1],d,a[s.i1][s.j1][s.k1]);
+      // negate e and d
+      pMULTIPLY(e,-1,e);
+      pMULTIPLY(d,-1,d);
+//      pPRINT(e);
+//      pPRINT(d);
+      pSUM(a[s.i2][s.j2][s.k2],e,a[s.i2][s.j2][s.k2]);
+      pSUM(a[s.i2][s.j2][s.k2],d,a[s.i2][s.j2][s.k2]);
+//      pPRINT(a[s.i1][s.j1][s.k1]);
+//      pPRINT(a[s.i2][s.j2][s.k2]);
+  }
+
+  // shear springs
+  for (const auto &s : shearSprings)
+  {
+      point e,d;
+      computeElasticForce(jello->kElastic, s.r, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],e);
+      computeDamping(jello->dElastic, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],
+                     jello->v[s.i1][s.j1][s.k1], jello->v[s.i2][s.j2][s.k2],d);
+//      pPRINT(e);
+//      pPRINT(d);
+      pMULTIPLY(e, invM, e);
+      pMULTIPLY(d, invM, d);
+//      pPRINT(e);
+//      pPRINT(d);
+      pSUM(a[s.i1][s.j1][s.k1],e,a[s.i1][s.j1][s.k1]);
+      pSUM(a[s.i1][s.j1][s.k1],d,a[s.i1][s.j1][s.k1]);
+      // negate e and d
+      pMULTIPLY(e,-1,e);
+      pMULTIPLY(d,-1,d);
+//      pPRINT(e);
+//      pPRINT(d);
+      pSUM(a[s.i2][s.j2][s.k2],e,a[s.i2][s.j2][s.k2]);
+      pSUM(a[s.i2][s.j2][s.k2],d,a[s.i2][s.j2][s.k2]);
+//      pPRINT(a[s.i1][s.j1][s.k1]);
+//      pPRINT(a[s.i2][s.j2][s.k2]);
+  }
+
+    // bend springs
+    for (const auto &s : bendSprings)
+    {
+        point e,d;
+        computeElasticForce(jello->kElastic, s.r, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],e);
+        computeDamping(jello->dElastic, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],
+                       jello->v[s.i1][s.j1][s.k1], jello->v[s.i2][s.j2][s.k2],d);
+//        pPRINT(e);
+//        pPRINT(d);
+        pMULTIPLY(e, invM, e);
+        pMULTIPLY(d, invM, d);
+//        pPRINT(e);
+//        pPRINT(d);
+        pSUM(a[s.i1][s.j1][s.k1],e,a[s.i1][s.j1][s.k1]);
+        pSUM(a[s.i1][s.j1][s.k1],d,a[s.i1][s.j1][s.k1]);
+        // negate e and d
+        pMULTIPLY(e,-1,e);
+        pMULTIPLY(d,-1,d);
+//        pPRINT(e);
+//        pPRINT(d);
+        pSUM(a[s.i2][s.j2][s.k2],e,a[s.i2][s.j2][s.k2]);
+        pSUM(a[s.i2][s.j2][s.k2],d,a[s.i2][s.j2][s.k2]);
+//        pPRINT(a[s.i1][s.j1][s.k1]);
+//        pPRINT(a[s.i2][s.j2][s.k2]);
+    }
+
+    // external force
+    int i, j, k;
+    for (i=0; i<=7; i++)
+        for (j=0; j<=7; j++)
+            for (k=0; k<=7; k++)
+            {
+                point f;
+                pCPY(jello->forceField[i * jello->resolution * jello->resolution + j * jello->resolution + k],f);
+//                pPRINT(f);
+                pMULTIPLY(f, invM, f);
+//                pPRINT(f);
+                pSUM(a[i][j][k],f, a[i][j][k]);
+//                pPRINT(a[i][j][k]);
+            }
 }
 
 /* performs one step of Euler Integration */
