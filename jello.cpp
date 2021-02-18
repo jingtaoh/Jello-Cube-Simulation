@@ -230,7 +230,7 @@ void doIdle()
   if (pause == 0)
   {
     // insert code which appropriately performs one step of the cube simulation:
-//    Euler(&jello);
+    Euler(&jello);
   }
 
   glutPostRedisplay();

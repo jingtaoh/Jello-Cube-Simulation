@@ -157,25 +157,16 @@ extern struct world jello;
 struct spring
 {
     int i1; int j1; int k1;  // indices of 1st mass point
-    int i2; int j2; int k2; // indices of 2nd mass point
+    int i2; int j2; int k2;  // indices of 2nd mass point
     double r;   // rest length
     spring(int i, int j, int k, int ip, int jp, int kp, double scale)
             : i1(i), j1(j), k1(k), i2(ip), j2(jp), k2(kp)
     {
         struct point p1, p2;
         pCPY((jello.p[i1][j1][k1]), p1);
-//        pPRINT(p1);
         pCPY((jello.p[i2][j2][k2]), p2);
-//        pPRINT(p2);
         pDIFFERENCE(p1, p2, p1);
-//        pPRINT(p1);
-//        r = sqrt((p1.x * p1.x) + (p1.y * p1.y) + (p1.z * p1.z));
         r = scale * L;
-        std::cout << "spring between point[" << i1 << "][" << j1 << "][" << k1 << "]("
-          << (jello.p[i1][j1][k1]).x << ", " << (jello.p[i1][j1][k1]).y << ", " << (jello.p[i1][j1][k1]).z << ")"
-          "and point[" << i2 << "][" << j2 << "][" << k2 << "]("
-          << (jello.p[i2][j2][k2]).x << ", " << (jello.p[i2][j2][k2]).y << ", " << (jello.p[i2][j2][k2]).z << ")" << std::endl;
-        std::cout << "rest length = " << r << std::endl;
     }
 };
 

@@ -14,6 +14,7 @@ void generateSprings(const struct world & jello);
 void computeElasticForce(double k, double r, const struct point & p1, const struct point & p2, struct point & e);
 void computeDamping(double k, const struct point & p1, const struct point & p2, const struct point & v1, const struct point & v2, struct point & d);
 
+void computeAccelerationForSprings(const struct world * jello, struct point a[8][8][8], std::vector<spring> springs, double invM);
 void computeAcceleration(struct world * jello, struct point a[8][8][8]);
 
 // perform one step of Euler and Runge-Kutta-4th-order integrators
