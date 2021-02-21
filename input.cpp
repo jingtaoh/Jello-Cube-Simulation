@@ -133,6 +133,10 @@ void keyboardFunc (unsigned char key, int x, int y)
     case ' ':
       saveScreenToFile = 1 - saveScreenToFile;
       break;
+
+    case 'n':
+        if (debug) stop = false;
+        break;
   }
 }
 

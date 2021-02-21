@@ -17,9 +17,10 @@
 #include <string.h>
 #include <iostream>
 #include <vector>
+#include <limits>
 
 #define pi 3.141592653589793238462643383279
-#define L 0.142857
+#define L (1.0/7.0)
 
 // camera angles
 extern double Theta;
@@ -76,7 +77,7 @@ extern struct world jello;
 // double x1,y1,z1,x2,y2,z2,x,y,z
 // result goes into x,y,z
 #define DOTPRODUCT(x1,y1,z1,x2,y2,z2,value) \
-    value = (x1 * x2) + (y1 * y2) + (z1 * z2)
+    value = ((x1) * (x2)) + ((y1) * (y2)) + ((z1) * (z2))
 
 // computes crossproduct of three vectors, which are given as points
 // struct point vector1, vector2, dest
@@ -162,15 +163,24 @@ struct spring
     spring(int i, int j, int k, int ip, int jp, int kp, double scale)
             : i1(i), j1(j), k1(k), i2(ip), j2(jp), k2(kp)
     {
-        struct point p1, p2;
-        pCPY((jello.p[i1][j1][k1]), p1);
-        pCPY((jello.p[i2][j2][k2]), p2);
-        pDIFFERENCE(p1, p2, p1);
-        r = scale * L;
+
+        r = scale * (1.0 / 7.0);
+
+//        struct point p1, p2;
+//        pCPY((jello.p[i1][j1][k1]), p1);
+//        pCPY((jello.p[i2][j2][k2]), p2);
+//        pDIFFERENCE(p1, p2, p1);
+//        r = sqrt((p1.x * p1.x) + (p1.y * p1.y) + (p1.z * p1.z));
+        std::cout << "p1(" << i1 << ", " << j1 << ", " << k1 << ") - p2(" << i2 << ", " << j2 << ", " << k2 << ")" << std::endl;
+        std::cout << "r = " << r << std::endl;
     }
 };
 
-extern std::vector<spring> structuralSprinps, shearSprings, bendSprings;
+extern std::vector<spring> structuralSprings, shearSprings, bendSprings;
+
+extern double current_time;
+extern bool stop;
+extern bool debug;
 
 #endif
 

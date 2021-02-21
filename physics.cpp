@@ -25,7 +25,7 @@ void generateSprings(const struct world & jello)
             (jp>7) || (jp<0) ||\
             (kp>7) || (kp<0) )) \
         {\
-            (springType).push_back(spring(i, j, k, ip, jp, kp,scale)); \
+            (springType).push_back(spring(i, j, k, ip, jp, kp, scale)); \
         }\
 
     for (i=0; i<=7; i++)
@@ -35,49 +35,35 @@ void generateSprings(const struct world & jello)
                 double scale;
                 // structural springs
                 {
-                    scale =1;
-                    PROCESS_NEIGHBOUR(1,0,0,structuralSprinps);
-                    PROCESS_NEIGHBOUR(0,1,0,structuralSprinps);
-                    PROCESS_NEIGHBOUR(0,0,1,structuralSprinps);
-                    PROCESS_NEIGHBOUR(-1,0,0,structuralSprinps);
-                    PROCESS_NEIGHBOUR(0,-1,0,structuralSprinps);
-                    PROCESS_NEIGHBOUR(0,0,-1,structuralSprinps);
+                    scale = 1.0;
+                    PROCESS_NEIGHBOUR(1,0,0,structuralSprings);
+                    PROCESS_NEIGHBOUR(0,1,0,structuralSprings);
+                    PROCESS_NEIGHBOUR(0,0,1,structuralSprings);
                 }
                 // shear springs
                 {
-                    scale = sqrt(2);
+                    scale = sqrt(2.0);
                     PROCESS_NEIGHBOUR(1,1,0,shearSprings);
                     PROCESS_NEIGHBOUR(-1,1,0,shearSprings);
-                    PROCESS_NEIGHBOUR(-1,-1,0,shearSprings);
-                    PROCESS_NEIGHBOUR(1,-1,0,shearSprings);
+
                     PROCESS_NEIGHBOUR(0,1,1,shearSprings);
                     PROCESS_NEIGHBOUR(0,-1,1,shearSprings);
-                    PROCESS_NEIGHBOUR(0,-1,-1,shearSprings);
-                    PROCESS_NEIGHBOUR(0,1,-1,shearSprings);
+
                     PROCESS_NEIGHBOUR(1,0,1,shearSprings);
                     PROCESS_NEIGHBOUR(-1,0,1,shearSprings);
-                    PROCESS_NEIGHBOUR(-1,0,-1,shearSprings);
-                    PROCESS_NEIGHBOUR(1,0,-1,shearSprings);
 
-                    scale = sqrt(3);
+                    scale = sqrt(3.0);
                     PROCESS_NEIGHBOUR(1,1,1,shearSprings);
                     PROCESS_NEIGHBOUR(-1,1,1,shearSprings);
                     PROCESS_NEIGHBOUR(-1,-1,1,shearSprings);
                     PROCESS_NEIGHBOUR(1,-1,1,shearSprings);
-                    PROCESS_NEIGHBOUR(1,1,-1,shearSprings);
-                    PROCESS_NEIGHBOUR(-1,1,-1,shearSprings);
-                    PROCESS_NEIGHBOUR(-1,-1,-1,shearSprings);
-                    PROCESS_NEIGHBOUR(1,-1,-1,shearSprings);
                 }
                 // bend springs
                 {
-                    scale = 2;
+                    scale = 2.0;
                     PROCESS_NEIGHBOUR(2,0,0,bendSprings);
                     PROCESS_NEIGHBOUR(0,2,0,bendSprings);
                     PROCESS_NEIGHBOUR(0,0,2,bendSprings);
-                    PROCESS_NEIGHBOUR(-2,0,0,bendSprings);
-                    PROCESS_NEIGHBOUR(0,-2,0,bendSprings);
-                    PROCESS_NEIGHBOUR(0,0,-2,bendSprings);
                 }
             }
 }
@@ -92,11 +78,22 @@ void generateSprings(const struct world & jello)
  */
 void computeElasticForce(double k, double r, const struct point & p1, const struct point & p2, struct point & e)
 {
+//    std::cout.precision(std::numeric_limits< double >::max_digits10);
     point l;
+//    pPRINT(e);
+//    pPRINT(p1);
+//    pPRINT(p2);
+//    std::cout << "k_hook = " << k << std::endl;
+//    std::cout << "rest len: " << r << std::endl;
     pDIFFERENCE(p1, p2, l);
     double length;
     pNORMALIZE(l); // compute length
-    pMULTIPLY(l, - k * (length - r), e);
+//    pPRINT(l);
+//    std::cout << "act len: " << length << std::endl;
+    pMULTIPLY(l, -k * (length - r), e);
+//    std::cout << "l - r = "<< (length - r) << std::endl;
+//    pPRINT(e);
+//    std::cout << std::endl;
 }
 
  /**
@@ -112,13 +109,23 @@ void computeDamping(double k, const struct point & p1, const struct point & p2, 
 {
     point l;
     pDIFFERENCE(p1, p2, l);
+//    pPRINT(p1);
+//    pPRINT(p2);
+//    std::cout << "k_d = " << k << std::endl;
     point v;
     pDIFFERENCE(v1, v2, v);
+//    pPRINT(v1);
+//    pPRINT(v2);
+//    pPRINT(v);
     double length;
     pNORMALIZE(l);
+//    pPRINT(l);
     double velocity;
     DOTPRODUCTp(v, l, velocity);
+//    std::cout << "delta v = " << velocity << std::endl;
     pMULTIPLY(l, -k * velocity, d);
+//    pPRINT(d);
+//    std::cout << std::endl;
 }
 
 /**
@@ -133,26 +140,32 @@ void computeAccelerationForSprings(const struct world * jello, struct point a[8]
     for (const auto &s : springs)
     {
         point e,d;
+//        std::cout << "p1(" << s.i1 << ", " << s.j1 << ", " << s.k1 << ") - p2(" << s.i2 << ", " << s.j2 << ", " << s.k2 << ")" << std::endl;
         computeElasticForce(jello->kElastic, s.r, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],e);
         computeDamping(jello->dElastic, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],
                        jello->v[s.i1][s.j1][s.k1], jello->v[s.i2][s.j2][s.k2],d);
-//      pPRINT(e);
-//      pPRINT(d);
+//        std::cout << "force:" << std::endl;
+//        pPRINT(e);
+//        pPRINT(d);
+//        std::cout << "acce p1:" << std::endl;
         pMULTIPLY(e, invM, e);
         pMULTIPLY(d, invM, d);
-//      pPRINT(e);
-//      pPRINT(d);
+//        pPRINT(e);
+//        pPRINT(d);
         pSUM(a[s.i1][s.j1][s.k1],e,a[s.i1][s.j1][s.k1]);
         pSUM(a[s.i1][s.j1][s.k1],d,a[s.i1][s.j1][s.k1]);
         // negate e and d
+//        std::cout << "acce p2:" << std::endl;
         pMULTIPLY(e,-1,e);
         pMULTIPLY(d,-1,d);
-//      pPRINT(e);
-//      pPRINT(d);
+//        pPRINT(e);
+//        pPRINT(d);
         pSUM(a[s.i2][s.j2][s.k2],e,a[s.i2][s.j2][s.k2]);
         pSUM(a[s.i2][s.j2][s.k2],d,a[s.i2][s.j2][s.k2]);
-//      pPRINT(a[s.i1][s.j1][s.k1]);
-//      pPRINT(a[s.i2][s.j2][s.k2]);
+//        std::cout << "outcome: " << std::endl;
+//        pPRINT(a[s.i1][s.j1][s.k1]);
+//        pPRINT(a[s.i2][s.j2][s.k2]);
+//      std::cout << std::endl;
     }
 }
 
@@ -163,13 +176,14 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
 {
   /* for you to implement ... */
   // TODO: Implement a = F / m
+  //    - fixed rotate.w
   //    - external force
   //    - bouncing off the walls
 
-  double invM = 1 / jello->mass;
+  double invM = 1.0 / jello->mass;
 
     // structural springs
-    computeAccelerationForSprings(jello, a, structuralSprinps, invM);
+    computeAccelerationForSprings(jello, a, structuralSprings, invM);
 
     // shear springs
 
@@ -202,6 +216,7 @@ void Euler(struct world * jello)
   point a[8][8][8];
 
   computeAcceleration(jello, a);
+  current_time += jello->dt;
   
   for (i=0; i<=7; i++)
     for (j=0; j<=7; j++)
@@ -234,7 +249,7 @@ void RK4(struct world * jello)
   int i,j,k;
 
   buffer = *jello; // make a copy of jello
-
+  current_time += jello->dt;
   computeAcceleration(jello, a);
 
   for (i=0; i<=7; i++)

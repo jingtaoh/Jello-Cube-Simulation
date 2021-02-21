@@ -31,7 +31,11 @@ int shear=0, bend=0, structural=1, pause=0, viewingMode=0, saveScreenToFile=0;
 
 struct world jello;
 
-std::vector<spring> structuralSprinps, shearSprings, bendSprings;
+std::vector<spring> structuralSprings, shearSprings, bendSprings;
+
+double current_time = 0;
+bool stop;
+bool debug;
 
 int windowWidth, windowHeight;
 
@@ -227,10 +231,13 @@ void doIdle()
     exit(0);	
   }
 
-  if (pause == 0)
+  if (pause == 0 && !stop)
   {
     // insert code which appropriately performs one step of the cube simulation:
-    Euler(&jello);
+    std::cout << "time: " << current_time << std::endl;
+    RK4(&jello);
+    if (debug)
+        stop = true;
   }
 
   glutPostRedisplay();
@@ -247,11 +254,14 @@ int main (int argc, char ** argv)
 
   readWorld(argv[1],&jello);
 
+  // optional debug option
+  debug = (argc == 3 && std::string(argv[2])== "-d") ? true : false;
+  stop = debug ? true : false;
+
+//  std::cout.precision(std::numeric_limits< double >::max_digits10);
   generateSprings(jello);
-  point a[8][8][8];
 
-
-  std::cout << "structural count: " << structuralSprinps.size() << std::endl;
+  std::cout << "structural count: " << structuralSprings.size() << std::endl;
   std::cout << "shear count: " <<shearSprings.size() << std::endl;
   std::cout << "bend count: " <<bendSprings.size() << std::endl;
 
