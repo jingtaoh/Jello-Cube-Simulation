@@ -256,7 +256,7 @@ int main (int argc, char ** argv)
 
   readWorld(argv[1],&jello);
 
-  // optional debug option
+  // debug option (visually step over use key 'n')
   debug = (argc == 3 && std::string(argv[2])== "-d") ? true : false;
   stop = debug ? true : false;
 
@@ -265,6 +265,9 @@ int main (int argc, char ** argv)
   std::cout << "structural count: " << structuralSprings.size() << std::endl;
   std::cout << "shear count: " <<shearSprings.size() << std::endl;
   std::cout << "bend count: " <<bendSprings.size() << std::endl;
+
+  if (strcmp(jello.integrator, "Euler") == 0) std::cout << "Integrator: Euler" << std::endl;
+  else if (strcmp(jello.integrator, "RK4") == 0) std::cout << "Integrator: RK4" << std::endl;
 
   glutInit(&argc,argv);
   
