@@ -78,22 +78,11 @@ void generateSprings(const struct world & jello)
  */
 void computeElasticForce(double k, double r, const struct point & p1, const struct point & p2, struct point & e)
 {
-//    std::cout.precision(std::numeric_limits< double >::max_digits10);
     point l;
-//    pPRINT(e);
-//    pPRINT(p1);
-//    pPRINT(p2);
-//    std::cout << "k_hook = " << k << std::endl;
-//    std::cout << "rest len: " << r << std::endl;
     pDIFFERENCE(p1, p2, l);
     double length;
     pNORMALIZE(l); // compute length
-//    pPRINT(l);
-//    std::cout << "act len: " << length << std::endl;
     pMULTIPLY(l, -k * (length - r), e);
-//    std::cout << "l - r = "<< (length - r) << std::endl;
-//    pPRINT(e);
-//    std::cout << std::endl;
 }
 
  /**
@@ -109,23 +98,13 @@ void computeDamping(double k, const struct point & p1, const struct point & p2, 
 {
     point l;
     pDIFFERENCE(p1, p2, l);
-//    pPRINT(p1);
-//    pPRINT(p2);
-//    std::cout << "k_d = " << k << std::endl;
     point v;
     pDIFFERENCE(v1, v2, v);
-//    pPRINT(v1);
-//    pPRINT(v2);
-//    pPRINT(v);
     double length;
     pNORMALIZE(l);
-//    pPRINT(l);
     double velocity;
     DOTPRODUCTp(v, l, velocity);
-//    std::cout << "delta v = " << velocity << std::endl;
     pMULTIPLY(l, -k * velocity, d);
-//    pPRINT(d);
-//    std::cout << std::endl;
 }
 
 /**
@@ -137,35 +116,26 @@ void computeDamping(double k, const struct point & p1, const struct point & p2, 
  */
 void computeAccelerationForSprings(const struct world * jello, struct point a[8][8][8], std::vector<spring> springs, double invM)
 {
+    // TODO : fix the error
     for (const auto &s : springs)
     {
         point e,d;
-//        std::cout << "p1(" << s.i1 << ", " << s.j1 << ", " << s.k1 << ") - p2(" << s.i2 << ", " << s.j2 << ", " << s.k2 << ")" << std::endl;
         computeElasticForce(jello->kElastic, s.r, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],e);
         computeDamping(jello->dElastic, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],
                        jello->v[s.i1][s.j1][s.k1], jello->v[s.i2][s.j2][s.k2],d);
-//        std::cout << "force:" << std::endl;
-//        pPRINT(e);
-//        pPRINT(d);
-//        std::cout << "acce p1:" << std::endl;
+
         pMULTIPLY(e, invM, e);
         pMULTIPLY(d, invM, d);
-//        pPRINT(e);
-//        pPRINT(d);
+
         pSUM(a[s.i1][s.j1][s.k1],e,a[s.i1][s.j1][s.k1]);
         pSUM(a[s.i1][s.j1][s.k1],d,a[s.i1][s.j1][s.k1]);
+
         // negate e and d
-//        std::cout << "acce p2:" << std::endl;
         pMULTIPLY(e,-1,e);
         pMULTIPLY(d,-1,d);
-//        pPRINT(e);
-//        pPRINT(d);
+
         pSUM(a[s.i2][s.j2][s.k2],e,a[s.i2][s.j2][s.k2]);
         pSUM(a[s.i2][s.j2][s.k2],d,a[s.i2][s.j2][s.k2]);
-//        std::cout << "outcome: " << std::endl;
-//        pPRINT(a[s.i1][s.j1][s.k1]);
-//        pPRINT(a[s.i2][s.j2][s.k2]);
-//      std::cout << std::endl;
     }
 }
 
@@ -176,9 +146,18 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
 {
   /* for you to implement ... */
   // TODO: Implement a = F / m
-  //    - fixed rotate.w
   //    - external force
   //    - bouncing off the walls
+
+  int i, j, k;
+
+  for (i=0; i<=7; i++)
+        for (j=0; j<=7; j++)
+            for (k=0; k<=7; k++)
+            {
+                pMAKE(0, 0, 0, a[i][j][k]);
+            }
+
 
   double invM = 1.0 / jello->mass;
 
@@ -186,7 +165,6 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
     computeAccelerationForSprings(jello, a, structuralSprings, invM);
 
     // shear springs
-
     computeAccelerationForSprings(jello, a, shearSprings, invM);
 
     // bend springs

@@ -119,11 +119,11 @@ extern struct world jello;
 // assigns values x,y,z to point vector dest
 // struct point dest
 // double x,y,z
-#define pMAKE(x,y,z,dest)\
+#define pMAKE(a,b,c,dest)\
 \
-  (dest).(x) = (x);\
-  (dest).(y) = (y);\
-  (dest).(z) = (z);
+  (dest).x = (a);\
+  (dest).y = (b);\
+  (dest).z = (c);
 
 // sums points src1 and src2 to dest
 // struct point src1,src2,dest
@@ -164,15 +164,16 @@ struct spring
             : i1(i), j1(j), k1(k), i2(ip), j2(jp), k2(kp)
     {
 
-        r = scale * (1.0 / 7.0);
+        r = scale * L;
 
 //        struct point p1, p2;
 //        pCPY((jello.p[i1][j1][k1]), p1);
 //        pCPY((jello.p[i2][j2][k2]), p2);
 //        pDIFFERENCE(p1, p2, p1);
 //        r = sqrt((p1.x * p1.x) + (p1.y * p1.y) + (p1.z * p1.z));
-        std::cout << "p1(" << i1 << ", " << j1 << ", " << k1 << ") - p2(" << i2 << ", " << j2 << ", " << k2 << ")" << std::endl;
-        std::cout << "r = " << r << std::endl;
+
+//        std::cout << "p1(" << i1 << ", " << j1 << ", " << k1 << ") - p2(" << i2 << ", " << j2 << ", " << k2 << ")" << std::endl;
+//        std::cout << "r = " << r << std::endl;
     }
 };
 

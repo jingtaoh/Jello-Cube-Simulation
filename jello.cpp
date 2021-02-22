@@ -233,11 +233,13 @@ void doIdle()
 
   if (pause == 0 && !stop)
   {
-    // insert code which appropriately performs one step of the cube simulation:
-    std::cout << "time: " << current_time << std::endl;
-    RK4(&jello);
-    if (debug)
-        stop = true;
+      if (debug) std::cout << "time: " << current_time << std::endl;
+
+      // insert code which appropriately performs one step of the cube simulation:
+      if (strcmp(jello.integrator, "Euler") == 0) Euler(&jello);
+      else if (strcmp(jello.integrator, "RK4") == 0) RK4(&jello);
+
+      if (debug) stop = true;
   }
 
   glutPostRedisplay();
@@ -258,7 +260,6 @@ int main (int argc, char ** argv)
   debug = (argc == 3 && std::string(argv[2])== "-d") ? true : false;
   stop = debug ? true : false;
 
-//  std::cout.precision(std::numeric_limits< double >::max_digits10);
   generateSprings(jello);
 
   std::cout << "structural count: " << structuralSprings.size() << std::endl;
