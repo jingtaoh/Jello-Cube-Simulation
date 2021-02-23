@@ -40,6 +40,15 @@ struct point
    double y;
    double z;
    point() :x(0), y(0), z(0){}
+   point(double a, double b, double c) : x(a), y(b), z(c) {};
+};
+
+struct indices
+{
+    int ix;
+    int iy;
+    int iz;
+    indices(int i, int j, int k) : ix(i), iy(j), iz(k){};
 };
 
 // these variables control what is displayed on the screen
@@ -163,19 +172,63 @@ struct spring
     spring(int i, int j, int k, int ip, int jp, int kp, double scale)
             : i1(i), j1(j), k1(k), i2(ip), j2(jp), k2(kp)
     {
-
         r = scale * L;
-
-//        struct point p1, p2;
-//        pCPY((jello.p[i1][j1][k1]), p1);
-//        pCPY((jello.p[i2][j2][k2]), p2);
-//        pDIFFERENCE(p1, p2, p1);
-//        r = sqrt((p1.x * p1.x) + (p1.y * p1.y) + (p1.z * p1.z));
-
-//        std::cout << "p1(" << i1 << ", " << j1 << ", " << k1 << ") - p2(" << i2 << ", " << j2 << ", " << k2 << ")" << std::endl;
-//        std::cout << "r = " << r << std::endl;
     }
 };
+
+struct collisionSpring
+{
+    indices pInd;       // indices of mass point that collide with plane
+    point contactPoint; // contact point
+    double r;           // rest length
+    collisionSpring(indices pI, point cP) : pInd(pI.ix, pI.iy, pI.iz), contactPoint(cP.x, cP.y, cP.z), r(0.0){}
+};
+
+struct plane
+{
+    double a, b, c, d;
+    plane(double pa, double pb, double pc, double pd) : a(pa), b(pb), c(pb), d(pd) {};
+    plane() : a(0), b(0), c(0), d(0){};
+    plane(point p1, point p2, point p3)
+    {
+        point v1, v2, n;
+        pDIFFERENCE(p3, p2, v1);
+        pDIFFERENCE(p1, p2, v2);
+        CROSSPRODUCTp(v1, v2, n);
+        double length;
+        pNORMALIZE(n);
+        a = n.x; b = n.y; c  = n.z;
+        d = - (a * p1.x + b * p1.y + c * p1.z);
+//        print();
+    }
+    void print()
+    {
+        std::cout << "plane: " << a << "x + " << b << "y + " << c << "z + " << d << " = 0" << std::endl;
+    }
+};
+
+struct bbox
+{
+    point min;
+    point max;
+    plane planes[6];
+    bbox(point pMin, point pMax) : min(pMin), max(pMax) {
+        planes[0] = plane(point(min.x, min.y, min.z), point(max.x, min.y, min.z), point(max.x, max.y, min.z));  // bottom
+        planes[1] = plane(point(max.x, max.y, max.z), point(max.x, min.y, max.z), point(min.x, min.y, max.z));  // top
+        planes[2] = plane(point(min.x, min.y, min.z), point(min.x, max.y, min.z), point(min.x, max.y, max.z));  // left
+        planes[3] = plane(point(max.x, max.y, max.z), point(max.x, max.y, min.z), point(max.x, min.y, min.z));  // right
+        planes[4] = plane(point(min.x, min.y, min.z), point(min.x, min.y, max.z), point(max.x, min.y, max.z));  // front
+        planes[5] = plane(point(max.x, max.y, max.z), point(min.x, max.y, max.z), point(min.x, max.y, min.z));  // back
+    };
+public:
+    void print()
+    {
+        for (int i = 0; i < 6; i++)
+            planes[i].print();
+    }
+};
+
+extern bbox boundingBox;
 
 extern std::vector<spring> structuralSprings, shearSprings, bendSprings;
 

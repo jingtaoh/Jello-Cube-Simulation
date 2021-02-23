@@ -139,6 +139,129 @@ void computeAccelerationForSprings(const struct world * jello, struct point a[8]
     }
 }
 
+/**
+ * check if a point is inside the bounding box
+ * @param p - point to be checked
+ * @param b - bounding box
+ * @return true if p inside b, otherwise false
+ */
+bool isPointInsideBBox(const point &p, bbox b)
+{
+    return ((p.x >= b.min.x && p.x <= b.max.x)
+      && (p.y >= b.min.y && p.y <= b.max.y)
+      && (p.z >= b.min.z && p.z <= b.max.z));
+}
+/**
+ * check if a point is lie at the positive side of a plane
+ * @param pt - point
+ * @param pl - plane
+ * @return true if point lie in the positive side, otherwise false
+ */
+bool isPointInPositiveSide(const point &pt, const plane &pl)
+{
+    return pl.a * pt.x + pl.b * pt.y + pl.c * pt.z + pl.d >= 0;
+}
+
+/**
+ * compute the closest point from plane to a point
+ * @param pt - point
+ * @param pl - plane
+ * @return closest point to point in plane
+ */
+point computeClosestPoint(const point &pt, const plane &pl)
+{
+    // get normal
+    point n;
+    n = point(pl.a, pl.b, pl.c);
+
+    // create a ray with origin at pt, with -n direction and parameter t: r = pt - nt
+    // compute t when ray intersect with plane ax + by + cz + d = 0
+    // t = (<n,pt>+d)/<n,n>
+    double dot0, dot1;
+    DOTPRODUCTp(n, pt, dot0);
+    DOTPRODUCTp(n, n, dot1);
+    double t;
+    t = (dot0 + pl.d) / dot1;
+
+    // insert t back into ray equation we get intersection point : p1 = pt - tn
+    pMULTIPLY(n, -t, n);
+    point closestPos;
+    pSUM(pt, n, closestPos);
+
+    return closestPos;
+}
+
+/**
+ *
+ * @param jello - jello state
+ * @param points - indices of points have has collided
+ * @param closestPos - closest positions on the boundary
+ * @return true if the collision happen, otherwise false
+ */
+bool checkCollisions(const struct world * jello, std::vector<indices> &points, std::vector<point> &closestPos)
+{
+    for (int i=0; i<=7; i++)
+        for (int j=0; j<=7; j++)
+            for (int k=0; k<=7; k++)
+            {
+                if (!isPointInsideBBox(jello->p[i][j][k],boundingBox))  // collide with bounding box
+                {
+                    point p = jello->p[i][j][k];
+                    for (int pInd = 0; pInd < 6; pInd++)
+                    {
+                        if (!isPointInPositiveSide(p, boundingBox.planes[pInd])) {  // collide with any plane
+                            points.push_back(indices(i, j, k));
+                            closestPos.push_back(computeClosestPoint(p, boundingBox.planes[pInd]));
+                        }
+                    }
+                }
+            }
+    return points.size() != 0;
+}
+/**
+ * collision response
+ * @param points - indices of points have has collided
+ * @param closestPos - closest positions on the boundary
+ * @param collisionSprings - collision springs
+ */
+void collisionResponse(std::vector<indices> &points, std::vector<point> &closestPos, std::vector<collisionSpring> &collisionSprings)
+{
+    if (points.size() == 0) // no collision to process
+        return;
+
+    for (int i = 0; i < points.size(); i++)
+    {
+        collisionSprings.push_back(collisionSpring(points[i], closestPos[i]));
+    }
+}
+
+
+void computeAccelerationForCollisions(const struct world * jello, struct point a[8][8][8], double invM)
+{
+    std::vector<indices> points;
+    std::vector<point> closestPos;
+    std::vector<collisionSpring> collisionSprings;
+
+    if(checkCollisions(jello, points, closestPos))
+        collisionResponse(points, closestPos, collisionSprings);
+
+    // TODO : fix the error
+    for (const auto &s : collisionSprings)
+    {
+        point e,d;
+        computeElasticForce(jello->kCollision, s.r, jello->p[s.pInd.ix][s.pInd.iy][s.pInd.iz], s.contactPoint,e);
+        computeDamping(jello->dCollision, jello->p[s.pInd.ix][s.pInd.iy][s.pInd.iz], s.contactPoint,
+                       jello->v[s.pInd.ix][s.pInd.iy][s.pInd.iz], point(0, 0, 0), d);
+
+        pMULTIPLY(e, invM, e);
+        pMULTIPLY(d, invM, d);
+
+        pSUM(a[s.pInd.ix][s.pInd.iy][s.pInd.iz],e,a[s.pInd.ix][s.pInd.iy][s.pInd.iz]);
+        pSUM(a[s.pInd.ix][s.pInd.iy][s.pInd.iz],d,a[s.pInd.ix][s.pInd.iy][s.pInd.iz]);
+    }
+
+}
+
 /* Computes acceleration to every control point of the jello cube, 
    which is in state given by 'jello'.
    Returns result in array 'a'. */
@@ -147,7 +270,6 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
   /* for you to implement ... */
   // TODO: Implement a = F / m
   //    - external force
-  //    - bouncing off the walls
 
   int i, j, k;
 
@@ -169,6 +291,9 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
 
     // bend springs
     computeAccelerationForSprings(jello, a, bendSprings, invM);
+
+    // collision detection and response
+    computeAccelerationForCollisions(jello, a, invM);
 
 //    // external force
 //    int i, j, k;

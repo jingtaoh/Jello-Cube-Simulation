@@ -32,6 +32,7 @@ int shear=0, bend=0, structural=1, pause=0, viewingMode=0, saveScreenToFile=0;
 struct world jello;
 
 std::vector<spring> structuralSprings, shearSprings, bendSprings;
+bbox boundingBox = bbox(point(-2, -2, -2), point(2, 2, 2));
 
 double current_time = 0;
 bool stop;
