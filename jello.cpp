@@ -33,6 +33,7 @@ struct world jello;
 
 std::vector<spring> structuralSprings, shearSprings, bendSprings;
 bbox boundingBox = bbox(point(-2, -2, -2), point(2, 2, 2));
+point cellWidth;
 
 double current_time = 0;
 bool stop;
@@ -266,6 +267,8 @@ int main (int argc, char ** argv)
   std::cout << "structural count: " << structuralSprings.size() << std::endl;
   std::cout << "shear count: " <<shearSprings.size() << std::endl;
   std::cout << "bend count: " <<bendSprings.size() << std::endl;
+
+  cellWidth = computeCellWidth(jello, boundingBox);
 
   if (strcmp(jello.integrator, "Euler") == 0) std::cout << "Integrator: Euler" << std::endl;
   else if (strcmp(jello.integrator, "RK4") == 0) std::cout << "Integrator: RK4" << std::endl;

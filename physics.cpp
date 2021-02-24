@@ -192,7 +192,7 @@ point computeClosestPoint(const point &pt, const plane &pl)
 }
 
 /**
- *
+ * check if collision happen and record collision info
  * @param jello - jello state
  * @param points - indices of points have has collided
  * @param closestPos - closest positions on the boundary
@@ -235,7 +235,12 @@ void collisionResponse(std::vector<indices> &points, std::vector<point> &closest
     }
 }
 
-
+/**
+ * compute acceleration for all collisions
+ * @param jello - jello state
+ * @param a - acceleration array
+ * @param invM - inverse of mass
+ */
 void computeAccelerationForCollisions(const struct world * jello, struct point a[8][8][8], double invM)
 {
     std::vector<indices> points;
@@ -260,6 +265,176 @@ void computeAccelerationForCollisions(const struct world * jello, struct point a
         pSUM(a[s.pInd.ix][s.pInd.iy][s.pInd.iz],d,a[s.pInd.ix][s.pInd.iy][s.pInd.iz]);
     }
 
+}
+
+/**
+ * compute cell width for external force field
+ * @param jello - jello state
+ * @param box - bounding box
+ * @return cell width of external force field
+ */
+point computeCellWidth(const struct world & jello, bbox &box)
+{
+    double invRes = 1.0 / (jello.resolution - 1);
+    return point((box.max.x - box.min.x) * invRes,
+                 (box.max.y - box.min.y) * invRes,
+                 (box.max.z - box.min.z) * invRes);
+}
+
+/**
+ * compute the force field cell indices of a particle which it lies in
+ * @param jello - jello state
+ * @param p - current particle
+ * @param box - bounding box
+ * @return the force field cell indices of a particle which it lies in
+ */
+point computeCellIndex(const struct world & jello, const point &p, const bbox &box)
+{
+    #define GET_INDEX(axis) \
+        floor((p.axis - box.min.axis) / (box.max.axis - box.min.axis) * (jello.resolution - 1)) \
+
+    return point(GET_INDEX(x), GET_INDEX(y),GET_INDEX(z));
+}
+/**
+ * compute barycentric coordinate of the particle inside cell
+ * @param p - current particle
+ * @param cellIndex - force field cell indices
+ * @param cellWidth - force field cell width
+ * @param box - bounding box
+ * @return barycentric coordinate of the particle inside cell
+ */
+point computeBarycentricCoord(const point &p, point &cellIndex, point &cellWidth, const bbox &box)
+{
+    #define GET_COORD(axis) \
+        (box.min.axis + (box.max.axis - box.min.axis) * (1.0 * cellIndex.axis / (jello.resolution-1)))\
+
+    return point((p.x - GET_COORD(x)) / cellWidth.x,
+                 (p.y - GET_COORD(y)) / cellWidth.y,
+                 (p.z - GET_COORD(z)) / cellWidth.z);
+}
+/**
+ * compute particle's neighboring forces based on its location
+ * @param jello - jello state
+ * @param p - current particle
+ * @param cellIndex - the force field cell indices that p lies in
+ * @return p's neighboring forces
+ */
+std::vector<point> computeNeighborForces(const struct world & jello, const point &p, point &cellIndex)
+{
+    std::vector<point> forces;
+    std::vector<int> indices;
+
+    #define GET_IDX(I, J, K) \
+        (cellIndex.x + (I)) * jello.resolution * jello.resolution + (cellIndex.x + (J)) * jello.resolution + (cellIndex.x + (K))\
+
+    #define F(i, j, k) \
+        { indices.push_back(GET_IDX((i), (j), (k))); \
+          forces.push_back(jello.forceField[int(GET_IDX((i), (j), (k)))]);             \
+          /*std::cout << "[" << (i) << "][" << (j) << "][" << (k) << "]" << std::endl;   \
+          std::cout << "F[" << int(GET_IDX((i), (j), (k))) << "] = ";                  \
+          pPRINT(jello.forceField[int(GET_IDX((i), (j), (k)))]);*/ }  \
+
+    // F000
+    F(0, 0, 0);
+
+    // F001
+    if (cellIndex.z != (jello.resolution - 1)) F(0, 0, 1)
+    else F(0, 0, 0)
+
+    // F010
+    if (cellIndex.y != (jello.resolution - 1)) F(0, 1, 0)
+    else F(0, 0, 0);
+
+    // F011
+    if (cellIndex.z != (jello.resolution - 1) && cellIndex.y != (jello.resolution - 1)) F(0, 1, 1)
+    else if (cellIndex.z != (jello.resolution - 1)) F(0, 0, 1)
+    else if (cellIndex.y != (jello.resolution - 1)) F(0, 1, 0)
+    else F(0, 0, 0)
+
+    // F100
+    if (cellIndex.x != (jello.resolution - 1)) F(1, 0, 0)
+    else F(0, 0, 0)
+
+    // F101
+    if (cellIndex.z != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 0, 1)
+    else if (cellIndex.z != (jello.resolution - 1)) F(0, 0, 1)
+    else if (cellIndex.x != (jello.resolution - 1)) F(1, 0, 0)
+    else F(0, 0, 0)
+
+    // F110
+    if (cellIndex.y != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 1, 0)
+    else if (cellIndex.y != (jello.resolution - 1)) F(0, 1, 0)
+    else if (cellIndex.x != (jello.resolution - 1)) F(1, 0, 0)
+    else F(0, 0, 0)
+
+    // F111
+    if (cellIndex.z != (jello.resolution - 1) && cellIndex.y != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 1, 1)
+    else if (cellIndex.z != (jello.resolution - 1) && cellIndex.y != (jello.resolution - 1)) F(0, 1, 1)
+    else if (cellIndex.z != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 0, 1)
+    else if (cellIndex.y != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 1, 0)
+    else if (cellIndex.z != (jello.resolution - 1)) F(0, 0, 1)
+    else if (cellIndex.y != (jello.resolution - 1)) F(0, 1, 0)
+    else if (cellIndex.x != (jello.resolution - 1)) F(1, 0, 0)
+    else F(0, 0, 0)
+
+//    std::cout << "count: " << forces.size() << std::endl;
+    return forces;
+
+}
+
+/**
+ * force-field interpolation
+ * @param bc
+ * @param forces
+ * @return interpolated force
+ */
+point interpolate(const point &bc, const std::vector<point> &forces)
+{
+    point f;
+    for (int i = 0; i < 2; i++)
+        for (int j = 0; j < 2; j++)
+            for (int k = 0; k < 2; k++)
+            {
+                double a, b, c;
+                a = (i==1) ? bc.x : (1-bc.x);
+                b = (j==1) ? bc.y : (1-bc.y);
+                c = (k==1) ? bc.z : (1-bc.z);
+                point temp;
+                pMULTIPLY(forces[4*i+2*j+k], a*b*c, temp);
+                pSUM(f, temp, f);
+            }
+    return f;
+}
+
+point computeExternalForce(const struct world & jello, const point &p)
+{
+
+    // decide which cell the current particle is in
+    point cellIndex = computeCellIndex(jello, p, boundingBox);
+    // compute barycentric cord
+    point bc = computeBarycentricCoord(p, cellIndex, cellWidth, boundingBox);
+    // interpolate with neighbor forces
+    return interpolate(bc, computeNeighborForces(jello, p, cellIndex));
+}
+
+/**
+ * compute acceleration for external forces
+ * @param jello - jello state
+ * @param a - acceleration array
+ * @param invM - inverse of mass
+ */
+void computeAccelerationForExternalForces(const struct world * jello, struct point a[8][8][8], double invM)
+{
+    for (int i=0; i<=7; i++)
+        for (int j=0; j<=7; j++)
+            for (int k=0; k<=7; k++)
+            {
+                point f = computeExternalForce(*jello, jello->p[i][j][k]);
+                pMULTIPLY(f, invM, f);
+                pSUM(a[i][j][k], f, a[i][j][k]);
+                std::cout << "F[" << i << "][" << j << "][" << k << "]";
+                pPRINT(f);
+            }
 }
 
 /* Computes acceleration to every control point of the jello cube, 
@@ -295,20 +470,8 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
     // collision detection and response
     computeAccelerationForCollisions(jello, a, invM);
 
-//    // external force
-//    int i, j, k;
-//    for (i=0; i<=7; i++)
-//        for (j=0; j<=7; j++)
-//            for (k=0; k<=7; k++)
-//            {
-//                point f;
-//                pCPY(jello->forceField[i * jello->resolution * jello->resolution + j * jello->resolution + k],f);
-//                pPRINT(f);
-//                pMULTIPLY(f, invM, f);
-//                pPRINT(f);
-//                pSUM(a[i][j][k],f, a[i][j][k]);
-//                pPRINT(a[i][j][k]);
-//            }
+    // external force
+    computeAccelerationForExternalForces(jello, a, invM);
 }
 
 /* performs one step of Euler Integration */

@@ -229,6 +229,7 @@ public:
 };
 
 extern bbox boundingBox;
+extern point cellWidth;
 
 extern std::vector<spring> structuralSprings, shearSprings, bendSprings;
 
