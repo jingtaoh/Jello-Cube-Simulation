@@ -12,6 +12,7 @@
 #include "showCube.h"
 #include "input.h"
 #include "physics.h"
+#include "performanceCounter.h"
 
 // camera parameters
 double Theta = pi / 6;
@@ -38,6 +39,8 @@ point cellWidth;
 double current_time = 0;
 bool stop;
 bool debug;
+
+PerformanceCounter counter;
 
 int windowWidth, windowHeight;
 
@@ -210,8 +213,18 @@ void display()
   glutSwapBuffers();
 }
 
+void computeFPS()
+{
+    counter.StopCounter();
+    std::cout << "FPS = " << 1 / counter.GetElapsedTime() << std::endl;
+    counter.StartCounter();
+}
+
 void doIdle()
 {
+
+    computeFPS();
+
   char s[20]="picxxxx.ppm";
   int i;
   
@@ -255,6 +268,8 @@ int main (int argc, char ** argv)
     printf ("Usage: %s [worldfile]\n", argv[0]);
     exit(0);
   }
+
+  counter.StartCounter();
 
   readWorld(argv[1],&jello);
 

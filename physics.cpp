@@ -432,8 +432,6 @@ void computeAccelerationForExternalForces(const struct world * jello, struct poi
                 point f = computeExternalForce(*jello, jello->p[i][j][k]);
                 pMULTIPLY(f, invM, f);
                 pSUM(a[i][j][k], f, a[i][j][k]);
-                std::cout << "F[" << i << "][" << j << "][" << k << "]";
-                pPRINT(f);
             }
 }
 
@@ -442,29 +440,18 @@ void computeAccelerationForExternalForces(const struct world * jello, struct poi
    Returns result in array 'a'. */
 void computeAcceleration(struct world * jello, struct point a[8][8][8])
 {
-  /* for you to implement ... */
-  // TODO: Implement a = F / m
-  //    - external force
+    int i, j, k;
 
-  int i, j, k;
-
-  for (i=0; i<=7; i++)
+    for (i=0; i<=7; i++)
         for (j=0; j<=7; j++)
-            for (k=0; k<=7; k++)
-            {
-                pMAKE(0, 0, 0, a[i][j][k]);
-            }
+            for (k=0; k<=7; k++) { pMAKE(0, 0, 0, a[i][j][k]);}
 
 
-  double invM = 1.0 / jello->mass;
+    double invM = 1.0 / jello->mass;
 
-    // structural springs
+    // springs
     computeAccelerationForSprings(jello, a, structuralSprings, invM);
-
-    // shear springs
     computeAccelerationForSprings(jello, a, shearSprings, invM);
-
-    // bend springs
     computeAccelerationForSprings(jello, a, bendSprings, invM);
 
     // collision detection and response
