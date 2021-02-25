@@ -13,7 +13,7 @@ endif
 endif
 
 COMPILER = g++
-COMPILERFLAGS = -O2
+COMPILERFLAGS = -std=c++11
 
 all: jello createWorld
 
