@@ -103,9 +103,9 @@ void showCube(struct world * jello)
             PROCESS_NEIGHBOUR(1,0,0);
             PROCESS_NEIGHBOUR(0,1,0);
             PROCESS_NEIGHBOUR(0,0,1);
-            PROCESS_NEIGHBOUR(-1,0,0);
-            PROCESS_NEIGHBOUR(0,-1,0);
-            PROCESS_NEIGHBOUR(0,0,-1);
+//            PROCESS_NEIGHBOUR(-1,0,0);
+//            PROCESS_NEIGHBOUR(0,-1,0);
+//            PROCESS_NEIGHBOUR(0,0,-1);
           }
           
           // shear
@@ -114,25 +114,25 @@ void showCube(struct world * jello)
             glColor4f(0,1,0,1);
             PROCESS_NEIGHBOUR(1,1,0);
             PROCESS_NEIGHBOUR(-1,1,0);
-            PROCESS_NEIGHBOUR(-1,-1,0);
-            PROCESS_NEIGHBOUR(1,-1,0);
+//            PROCESS_NEIGHBOUR(-1,-1,0);
+//            PROCESS_NEIGHBOUR(1,-1,0);
             PROCESS_NEIGHBOUR(0,1,1);
             PROCESS_NEIGHBOUR(0,-1,1);
-            PROCESS_NEIGHBOUR(0,-1,-1);
-            PROCESS_NEIGHBOUR(0,1,-1);
+//            PROCESS_NEIGHBOUR(0,-1,-1);
+//            PROCESS_NEIGHBOUR(0,1,-1);
             PROCESS_NEIGHBOUR(1,0,1);
             PROCESS_NEIGHBOUR(-1,0,1);
-            PROCESS_NEIGHBOUR(-1,0,-1);
-            PROCESS_NEIGHBOUR(1,0,-1);
+//            PROCESS_NEIGHBOUR(-1,0,-1);
+//            PROCESS_NEIGHBOUR(1,0,-1);
 
             PROCESS_NEIGHBOUR(1,1,1)
             PROCESS_NEIGHBOUR(-1,1,1)
             PROCESS_NEIGHBOUR(-1,-1,1)
             PROCESS_NEIGHBOUR(1,-1,1)
-            PROCESS_NEIGHBOUR(1,1,-1)
-            PROCESS_NEIGHBOUR(-1,1,-1)
-            PROCESS_NEIGHBOUR(-1,-1,-1)
-            PROCESS_NEIGHBOUR(1,-1,-1)
+//            PROCESS_NEIGHBOUR(1,1,-1)
+//            PROCESS_NEIGHBOUR(-1,1,-1)
+//            PROCESS_NEIGHBOUR(-1,-1,-1)
+//            PROCESS_NEIGHBOUR(1,-1,-1)
           }
           
           // bend
@@ -142,9 +142,9 @@ void showCube(struct world * jello)
             PROCESS_NEIGHBOUR(2,0,0);
             PROCESS_NEIGHBOUR(0,2,0);
             PROCESS_NEIGHBOUR(0,0,2);
-            PROCESS_NEIGHBOUR(-2,0,0);
-            PROCESS_NEIGHBOUR(0,-2,0);
-            PROCESS_NEIGHBOUR(0,0,-2);
+//            PROCESS_NEIGHBOUR(-2,0,0);
+//            PROCESS_NEIGHBOUR(0,-2,0);
+//            PROCESS_NEIGHBOUR(0,0,-2);
           }           
           glEnd();
         }
@@ -230,7 +230,7 @@ void showCube(struct world * jello)
   glFrontFace(GL_CCW);
 }
 
-void showBoundingBox()
+void showBoundingBox(const bbox &box)
 {
   int i,j;
 
@@ -239,51 +239,51 @@ void showBoundingBox()
   glBegin(GL_LINES);
 
   // front face
-  for(i=-2; i<=2; i++)
+  for(i=box.min.x; i<=box.max.x; i++)  // vertical lines
   {
-    glVertex3f(i,-2,-2);
-    glVertex3f(i,-2,2);
+    glVertex3f(i,box.min.y,box.min.z);
+    glVertex3f(i,box.min.y,box.max.z);
   }
-  for(j=-2; j<=2; j++)
+  for(j=box.min.z; j<=box.max.z; j++)  // horizontal lines
   {
-    glVertex3f(-2,-2,j);
-    glVertex3f(2,-2,j);
+    glVertex3f(box.min.x,box.min.y,j);
+    glVertex3f(box.max.x,box.min.y,j);
   }
 
   // back face
-  for(i=-2; i<=2; i++)
+  for(i=box.min.x; i<=box.max.x; i++)   // vertical lines
   {
-    glVertex3f(i,2,-2);
-    glVertex3f(i,2,2);
+    glVertex3f(i,box.max.y,box.min.z);
+    glVertex3f(i,box.max.y,box.max.z);
   }
-  for(j=-2; j<=2; j++)
+  for(j=box.min.z; j<=box.max.z; j++)   // horizontal lines
   {
-    glVertex3f(-2,2,j);
-    glVertex3f(2,2,j);
+    glVertex3f(box.min.x,box.max.y,j);
+    glVertex3f(box.max.x,box.max.y,j);
   }
 
   // left face
-  for(i=-2; i<=2; i++)
+  for(i=box.min.y; i<=box.max.y; i++)  // vertical lines
   {
-    glVertex3f(-2,i,-2);
-    glVertex3f(-2,i,2);
+    glVertex3f(box.min.x,i,box.min.z);
+    glVertex3f(box.min.x,i,box.max.z);
   }
-  for(j=-2; j<=2; j++)
+  for(j=box.min.z; j<=box.max.z; j++)   // horizontal lines
   {
-    glVertex3f(-2,-2,j);
-    glVertex3f(-2,2,j);
+    glVertex3f(box.min.x,box.min.y,j);
+    glVertex3f(box.min.x,box.max.y,j);
   }
 
   // right face
-  for(i=-2; i<=2; i++)
+  for(i=box.min.y; i<=box.max.y; i++)  // vertical lines
   {
-    glVertex3f(2,i,-2);
-    glVertex3f(2,i,2);
+    glVertex3f(box.max.x,i,box.min.z);
+    glVertex3f(box.max.x,i,box.max.z);
   }
-  for(j=-2; j<=2; j++)
+  for(j=box.min.z; j<=box.max.z; j++)   // horizontal lines
   {
-    glVertex3f(2,-2,j);
-    glVertex3f(2,2,j);
+    glVertex3f(box.max.x,box.min.y,j);
+    glVertex3f(box.max.x,box.max.y,j);
   }
   
   glEnd();
@@ -291,3 +291,89 @@ void showBoundingBox()
   return;
 }
 
+/**
+ * check test a ray against with a plane
+ * @param r - ray r = o + td
+ * @param pl - plane np + D = 0;
+ * @return -1 if no intersection, >= 0 has intersection
+ */
+double intersect(const ray &r, const plane &pl)
+{
+    // substitute r with p in plane equation, we have t = - (<n, o> + D) / <n, d>
+
+    // get normal
+    point n;
+    n = point(pl.a, pl.b, pl.c);
+
+    double dot0, dot1;
+    DOTPRODUCTp(n, r.origin, dot0);
+    DOTPRODUCTp(n, r.dir, dot1);
+
+    if (dot1 == 0) return -1;   // ray parallel with plane
+
+    double t;
+    t = - (dot0 + pl.d) / dot1;
+
+    if (t < 0) return -1;       // plane is behind the ray
+
+    return t;   // has intersection
+}
+
+/**
+ * render the inclined plane specify in the world file
+ * @param jello - world state
+ * @param box - boudning box
+ */
+void showInclinedPlane(const struct world & jello, const bbox &box)
+{
+    if (jello.incPlanePresent == 0)  // return if inclined plane do not exist
+        return;
+
+    // get inclined plane from world
+    plane pl = plane(jello.a, jello.b, jello.c, jello.d);
+
+    #define INTERSECT(start, end, axis) \
+        for (int i = (start); i <= (end); i++)    \
+        {                               \
+            double t = intersect(box.rays[i],pl); \
+            if (t == -1 || (t > (box.max.axis - box.min.axis)))  \
+                continue;               \
+            point intersection; \
+            pMULTIPLY(box.rays[i].dir, t, intersection);\
+            pSUM(intersection, box.rays[i].origin, intersection); \
+            intersections.push_back(intersection); \
+        } \
+
+    // compute intersections between 12 edges and plane
+    std::vector<point> intersections;
+    INTERSECT(0, 3, x);
+    INTERSECT(4, 7, y);
+    INTERSECT(8, 11, z);
+
+    // render inclined plane
+
+    glColor4f(1,0,0,0);
+
+    glDisable(GL_CULL_FACE);
+
+    glBegin(GL_TRIANGLE_STRIP);
+
+    // triangle mode
+    for (auto i : intersections) {
+        glVertex3f(i.x, i.y, i.z);
+    }
+    // line mode
+//    for (int i = 0; i < intersections.size() - 1; i++) {
+//        glVertex3f(intersections[i].x, intersections[i].y, intersections[i].z);
+//        glVertex3f(intersections[i + 1].x, intersections[i + 1].y, intersections[i + 1].z);
+//    }
+//    glVertex3f(intersections[intersections.size() - 1].x, intersections[intersections.size() - 1].y, intersections[intersections.size() - 1].z);
+//    glVertex3f(intersections[0].x, intersections[0].y, intersections[0].z);
+
+    glEnd();
+
+    glEnable(GL_CULL_FACE);
+
+    return;
+
+}

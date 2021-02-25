@@ -208,11 +208,17 @@ void display()
   glDisable(GL_LIGHTING);
 
   // show the bounding box
-  showBoundingBox();
+  showBoundingBox(boundingBox);
+
+  // show the inclined plane if exist
+  showInclinedPlane(jello, boundingBox);
  
   glutSwapBuffers();
 }
 
+/**
+ * compute FPS
+ */
 void computeFPS()
 {
     counter.StopCounter();
@@ -223,7 +229,7 @@ void computeFPS()
 void doIdle()
 {
 
-    computeFPS();
+//    computeFPS();
 
   char s[20]="picxxxx.ppm";
   int i;

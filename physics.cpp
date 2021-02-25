@@ -204,16 +204,23 @@ bool checkCollisions(const struct world * jello, std::vector<indices> &points, s
         for (int j=0; j<=7; j++)
             for (int k=0; k<=7; k++)
             {
-                if (!isPointInsideBBox(jello->p[i][j][k],boundingBox))  // collide with bounding box
+                point pt = jello->p[i][j][k];
+                if (!isPointInsideBBox(pt,boundingBox))  // collide with bounding box
                 {
-                    point p = jello->p[i][j][k];
                     for (int pInd = 0; pInd < 6; pInd++)
                     {
-                        if (!isPointInPositiveSide(p, boundingBox.planes[pInd])) {  // collide with any plane
+                        if (!isPointInPositiveSide(pt, boundingBox.planes[pInd])) {  // collide with any plane
                             points.push_back(indices(i, j, k));
-                            closestPos.push_back(computeClosestPoint(p, boundingBox.planes[pInd]));
+                            closestPos.push_back(computeClosestPoint(pt, boundingBox.planes[pInd]));
                         }
                     }
+                }
+                plane pl = plane(jello->a, jello->b, jello->c, jello->d);
+                if (jello->incPlanePresent == 1
+                    && !isPointInPositiveSide(pt, pl))  // collide with inclined plane
+                {
+                    points.push_back(indices(i, j, k));
+                    closestPos.push_back(computeClosestPoint(pt, pl));
                 }
             }
     return points.size() != 0;

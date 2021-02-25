@@ -9,7 +9,6 @@
 #define _PHYSICS_H_
 
 void generateSprings(const struct world & jello);
-
 // compute Elastic force
 void computeElasticForce(double k, double r, const struct point & p1, const struct point & p2, struct point & e);
 void computeDamping(double k, const struct point & p1, const struct point & p2, const struct point & v1, const struct point & v2, struct point & d);

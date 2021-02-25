@@ -187,7 +187,7 @@ struct collisionSpring
 struct plane
 {
     double a, b, c, d;
-    plane(double pa, double pb, double pc, double pd) : a(pa), b(pb), c(pb), d(pd) {};
+    plane(double pa, double pb, double pc, double pd) : a(pa), b(pb), c(pc), d(pd) {};
     plane() : a(0), b(0), c(0), d(0){};
     plane(point p1, point p2, point p3)
     {
@@ -207,24 +207,88 @@ struct plane
     }
 };
 
+struct ray
+{
+    point origin;
+    point dir;
+    ray(point p1, point p2) : origin(p1){
+        pDIFFERENCE(p2, p1, dir);
+        double length;
+        pNORMALIZE(dir);
+    }
+    ray() : origin(point()), dir(point()){}
+};
+
 struct bbox
 {
     point min;
     point max;
     plane planes[6];
-    bbox(point pMin, point pMax) : min(pMin), max(pMax) {
+    ray rays[12];
+    bbox(point pMin, point pMax) : min(pMin), max(pMax){
         planes[0] = plane(point(min.x, min.y, min.z), point(max.x, min.y, min.z), point(max.x, max.y, min.z));  // bottom
         planes[1] = plane(point(max.x, max.y, max.z), point(max.x, min.y, max.z), point(min.x, min.y, max.z));  // top
         planes[2] = plane(point(min.x, min.y, min.z), point(min.x, max.y, min.z), point(min.x, max.y, max.z));  // left
         planes[3] = plane(point(max.x, max.y, max.z), point(max.x, max.y, min.z), point(max.x, min.y, min.z));  // right
         planes[4] = plane(point(min.x, min.y, min.z), point(min.x, min.y, max.z), point(max.x, min.y, max.z));  // front
         planes[5] = plane(point(max.x, max.y, max.z), point(min.x, max.y, max.z), point(min.x, max.y, min.z));  // back
+
+
+        // create 8 vertices
+        std::vector<point> vertices;
+        vertices.push_back(min);                        // 000
+        vertices.push_back(point(min.x, min.y, max.z)); // 001
+        vertices.push_back(point(min.x, max.y, min.z)); // 010
+        vertices.push_back(point(min.x, max.y, max.z)); // 011
+        vertices.push_back(point(max.x, min.y, min.z)); // 100
+        vertices.push_back(point(max.x, min.y, max.z)); // 101
+        vertices.push_back(point(max.x, max.y, min.z)); // 110
+        vertices.push_back(max);                        // 111
+
+
+        /*        Z
+         *    1-------5
+         *   /|      /|
+         *  3-|-----7 |  Y
+         *  | 0-----|-4
+         *  |/      |/
+         *  2-------6
+         *      X
+         */
+
+        // create 12 edges (store index of vertex)
+        std::vector<std::vector<int>> edgeMap
+                {
+                        {0, 4}, {1, 5}, {2, 6}, {3, 7}, // in x direction
+                        {0, 2}, {1, 3}, {4, 6}, {5, 7}, // in y direction
+                        {0, 1}, {2, 3}, {4, 5}, {6, 7}  // in z direction
+
+//                        {0, 1}, {0, 2}, {0,4},
+//                        {1, 3}, {1, 5},
+//                        {2, 3}, {2, 6},
+//                        {3, 7},
+//                        {4, 5}, {4, 6},
+//                        {5, 7},
+//                        {6,7}
+                };
+
+        for (int i = 0; i < 12; i++)
+        {
+            rays[i] = ray(vertices[edgeMap[i][0]], vertices[edgeMap[i][1]]);
+        }
     };
 public:
     void print()
     {
         for (int i = 0; i < 6; i++)
+        {
             planes[i].print();
+        }
+        for (int i = 0; i < 12; i++)
+        {
+            pPRINT(rays[i].origin);
+            pPRINT(rays[i].dir);
+        }
     }
 };
 
