@@ -377,3 +377,66 @@ void showInclinedPlane(const struct world & jello, const bbox &box)
     return;
 
 }
+/**
+ * Draw x, y z axis in Red, Green and Blue
+ */
+void showAxis()
+{
+
+    glBegin(GL_LINES);
+
+    glColor4f(1,0,0,0);
+
+    glVertex3f(0, 0, 0);
+    glVertex3f(3, 0, 0);
+
+    glColor4f(0,1,0,0);
+
+    glVertex3f(0, 0, 0);
+    glVertex3f(0, 3, 0);
+
+    glColor4f(0,0,1,0);
+
+    glVertex3f(0, 0, 0);
+    glVertex3f(0, 0, 3);
+
+    glEnd();
+
+    return;
+}
+
+/**
+ * Draw Force Field
+ * @param jello - jello state
+ * @param box - bounding box
+ */
+void showForceField(const struct world & jello, const bbox &box)
+{
+    #define GET_COORD(axis, ind) \
+        (box.min.axis + (box.max.axis - box.min.axis) * (1.0 * ind / (jello.resolution-1))) \
+
+    #define GET_FORCE(axis) \
+        abs(jello.forceField[(i) * jello.resolution * jello.resolution + (j) * jello.resolution + (k)].axis) / jello.mass \
+
+    int i,j,k;
+//    double max = std::numeric_limits<double>::min();
+//    for (i=0; i<= jello.resolution-1; i++)
+//        for (j=0; j<= jello.resolution-1; j++)
+//            for (k=0; k<= jello.resolution-1; k++)
+//            {
+//                if (jello.forceField[(i) * jello.resolution * jello.resolution + (j) * jello.resolution + (k)].x > max)
+//                    max = jello.forceField[(i) * jello.resolution * jello.resolution + (j) * jello.resolution + (k)].x;
+//            }
+
+    glBegin(GL_POINTS);
+
+    for (i=0; i<= 29; i++)
+        for (j=0; j<= 29; j++)
+            for (k=14; k<= 15; k++)
+            {
+                glColor4f(GET_FORCE(x), GET_FORCE(y), GET_FORCE(z),0);
+                glVertex3f(GET_COORD(x, i), GET_COORD(y, j), GET_COORD(z, k));
+            }
+
+    glEnd();
+}

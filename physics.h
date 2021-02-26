@@ -18,7 +18,7 @@ void computeAccelerationForSprings(const struct world * jello, struct point a[8]
 // collision detection and response
 bool isPointInsideBBox(const point &p, bbox b);
 bool isPointInPositiveSide(const point &pt, const plane &pl);
-point computeClosestPoint(const point &pt, const plane &pl);
+point computeClosestPoint(const point &pt, plane pl);
 bool checkCollisions(const struct world * jello, std::vector<indices> &points, std::vector<point> &closestPos);
 void collisionResponse(std::vector<indices> &points, std::vector<point> &closestPos, std::vector<collisionSpring> &collisionSprings);
 void computeAccelerationForCollisions(const struct world * jello, struct point a[8][8][8], double invM);
@@ -27,8 +27,9 @@ void computeAccelerationForCollisions(const struct world * jello, struct point a
 point computeCellWidth(const struct world & jello, bbox &box);
 point computeCellIndex(const struct world & jello, const point &p, const bbox &box);
 point computeBarycentricCoord(const point &p, point &cellIndex, point &cellWidth, const bbox &box);
-std::vector<point> computeNeighborForces(const struct world & jello, const point &p, point &cellOrigin);
+std::vector<point> computeNeighborForces(const struct world & jello, const point &p, point &cellIndex);
 point interpolate(const point &bc, const std::vector<point> &forces);
+point computeExternalForce(const struct world & jello, const point &p);
 void computeAccelerationForExternalForces(const struct world * jello, struct point a[8][8][8], double invM);
 
 void computeAcceleration(struct world * jello, struct point a[8][8][8]);
@@ -37,6 +38,8 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8]);
 // updates the jello structure accordingly
 void Euler(struct world * jello);
 void RK4(struct world * jello);
+// TODO : MidPoint Integration
+void MidPoint(struct world * jello);
 
 // non-physical move down
 void MoveDown(struct world * jello);

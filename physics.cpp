@@ -39,24 +39,35 @@ void generateSprings(const struct world & jello)
                     PROCESS_NEIGHBOUR(1,0,0,structuralSprings);
                     PROCESS_NEIGHBOUR(0,1,0,structuralSprings);
                     PROCESS_NEIGHBOUR(0,0,1,structuralSprings);
+//                    PROCESS_NEIGHBOUR(-1,0,0,structuralSprings);
+//                    PROCESS_NEIGHBOUR(0,-1,0,structuralSprings);
+//                    PROCESS_NEIGHBOUR(0,0,-1,structuralSprings);
                 }
                 // shear springs
                 {
                     scale = sqrt(2.0);
                     PROCESS_NEIGHBOUR(1,1,0,shearSprings);
                     PROCESS_NEIGHBOUR(-1,1,0,shearSprings);
-
+//                    PROCESS_NEIGHBOUR(-1,-1,0,shearSprings);
+//                    PROCESS_NEIGHBOUR(1,-1,0, shearSprings);
                     PROCESS_NEIGHBOUR(0,1,1,shearSprings);
                     PROCESS_NEIGHBOUR(0,-1,1,shearSprings);
-
+//                    PROCESS_NEIGHBOUR(0,-1,-1,shearSprings);
+//                    PROCESS_NEIGHBOUR(0,1,-1,shearSprings);
                     PROCESS_NEIGHBOUR(1,0,1,shearSprings);
                     PROCESS_NEIGHBOUR(-1,0,1,shearSprings);
+//                    PROCESS_NEIGHBOUR(-1,0,-1,shearSprings);
+//                    PROCESS_NEIGHBOUR(1,0,-1,shearSprings);
 
                     scale = sqrt(3.0);
                     PROCESS_NEIGHBOUR(1,1,1,shearSprings);
                     PROCESS_NEIGHBOUR(-1,1,1,shearSprings);
                     PROCESS_NEIGHBOUR(-1,-1,1,shearSprings);
                     PROCESS_NEIGHBOUR(1,-1,1,shearSprings);
+//                    PROCESS_NEIGHBOUR(1,1,-1,shearSprings)
+//                    PROCESS_NEIGHBOUR(-1,1,-1,shearSprings)
+//                    PROCESS_NEIGHBOUR(-1,-1,-1,shearSprings)
+//                    PROCESS_NEIGHBOUR(1,-1,-1,shearSprings)
                 }
                 // bend springs
                 {
@@ -64,6 +75,9 @@ void generateSprings(const struct world & jello)
                     PROCESS_NEIGHBOUR(2,0,0,bendSprings);
                     PROCESS_NEIGHBOUR(0,2,0,bendSprings);
                     PROCESS_NEIGHBOUR(0,0,2,bendSprings);
+//                    PROCESS_NEIGHBOUR(-2,0,0,bendSprings);
+//                    PROCESS_NEIGHBOUR(0,-2,0,bendSprings);
+//                    PROCESS_NEIGHBOUR(0,0,-2,bendSprings);
                 }
             }
 }
@@ -116,7 +130,6 @@ void computeDamping(double k, const struct point & p1, const struct point & p2, 
  */
 void computeAccelerationForSprings(const struct world * jello, struct point a[8][8][8], std::vector<spring> springs, double invM)
 {
-    // TODO : fix the error
     for (const auto &s : springs)
     {
         point e,d;
@@ -168,7 +181,7 @@ bool isPointInPositiveSide(const point &pt, const plane &pl)
  * @param pl - plane
  * @return closest point to point in plane
  */
-point computeClosestPoint(const point &pt, const plane &pl)
+point computeClosestPoint(const point &pt, plane pl)
 {
     // get normal
     point n;
@@ -187,7 +200,6 @@ point computeClosestPoint(const point &pt, const plane &pl)
     pMULTIPLY(n, -t, n);
     point closestPos;
     pSUM(pt, n, closestPos);
-
     return closestPos;
 }
 
@@ -257,7 +269,6 @@ void computeAccelerationForCollisions(const struct world * jello, struct point a
     if(checkCollisions(jello, points, closestPos))
         collisionResponse(points, closestPos, collisionSprings);
 
-    // TODO : fix the error
     for (const auto &s : collisionSprings)
     {
         point e,d;
@@ -282,10 +293,10 @@ void computeAccelerationForCollisions(const struct world * jello, struct point a
  */
 point computeCellWidth(const struct world & jello, bbox &box)
 {
-    double invRes = 1.0 / (jello.resolution - 1);
-    return point((box.max.x - box.min.x) * invRes,
-                 (box.max.y - box.min.y) * invRes,
-                 (box.max.z - box.min.z) * invRes);
+    double invRes = 1.0 / (jello.resolution - 1);  // inverse of cell number in one axis
+    return point((box.max.x - box.min.x) * invRes,  // cell length
+                 (box.max.y - box.min.y) * invRes,  // cell width
+                 (box.max.z - box.min.z) * invRes); // cell height
 }
 
 /**
@@ -298,9 +309,19 @@ point computeCellWidth(const struct world & jello, bbox &box)
 point computeCellIndex(const struct world & jello, const point &p, const bbox &box)
 {
     #define GET_INDEX(axis) \
-        floor((p.axis - box.min.axis) / (box.max.axis - box.min.axis) * (jello.resolution - 1)) \
+        floor((p.axis - box.min.axis) * (jello.resolution - 1) / (box.max.axis - box.min.axis) ) \
 
-    return point(GET_INDEX(x), GET_INDEX(y),GET_INDEX(z));
+    // compute cell index in each dimension
+    int i = GET_INDEX(x);
+    int j = GET_INDEX(y);
+    int k = GET_INDEX(z);
+
+    // make sure the index won't get out of bound
+    if (i == (jello.resolution - 1)) i--;
+    if (j == (jello.resolution - 1)) j--;
+    if (k == (jello.resolution - 1)) k--;
+
+    return point(i, j, k);
 }
 /**
  * compute barycentric coordinate of the particle inside cell
@@ -313,7 +334,7 @@ point computeCellIndex(const struct world & jello, const point &p, const bbox &b
 point computeBarycentricCoord(const point &p, point &cellIndex, point &cellWidth, const bbox &box)
 {
     #define GET_COORD(axis) \
-        (box.min.axis + (box.max.axis - box.min.axis) * (1.0 * cellIndex.axis / (jello.resolution-1)))\
+        (box.min.axis + (box.max.axis - box.min.axis) * (1.0 * cellIndex.axis / (jello.resolution-1))) \
 
     return point((p.x - GET_COORD(x)) / cellWidth.x,
                  (p.y - GET_COORD(y)) / cellWidth.y,
@@ -329,64 +350,20 @@ point computeBarycentricCoord(const point &p, point &cellIndex, point &cellWidth
 std::vector<point> computeNeighborForces(const struct world & jello, const point &p, point &cellIndex)
 {
     std::vector<point> forces;
-    std::vector<int> indices;
-
     #define GET_IDX(I, J, K) \
-        (cellIndex.x + (I)) * jello.resolution * jello.resolution + (cellIndex.x + (J)) * jello.resolution + (cellIndex.x + (K))\
+        (cellIndex.x + (I)) * jello.resolution * jello.resolution + (cellIndex.y + (J)) * jello.resolution + (cellIndex.z + (K))\
 
     #define F(i, j, k) \
-        { indices.push_back(GET_IDX((i), (j), (k))); \
-          forces.push_back(jello.forceField[int(GET_IDX((i), (j), (k)))]);             \
-          /*std::cout << "[" << (i) << "][" << (j) << "][" << (k) << "]" << std::endl;   \
+        { forces.push_back(jello.forceField[int(GET_IDX((i), (j), (k)))]);             \
+          /*std::cout << "[" << cellIndex.x + (i) << "][" << cellIndex.y + (j) << "][" << cellIndex.z + (k) << "]" << std::endl;   \
           std::cout << "F[" << int(GET_IDX((i), (j), (k))) << "] = ";                  \
-          pPRINT(jello.forceField[int(GET_IDX((i), (j), (k)))]);*/ }  \
+          pPRINT(jello.forceField[int(GET_IDX((i), (j), (k)))]); */}  \
 
-    // F000
-    F(0, 0, 0);
+    for (int i = 0; i < 2; i++)
+        for (int j = 0; j < 2; j++)
+            for (int k = 0; k < 2; k++) F(i, j, k);
 
-    // F001
-    if (cellIndex.z != (jello.resolution - 1)) F(0, 0, 1)
-    else F(0, 0, 0)
-
-    // F010
-    if (cellIndex.y != (jello.resolution - 1)) F(0, 1, 0)
-    else F(0, 0, 0);
-
-    // F011
-    if (cellIndex.z != (jello.resolution - 1) && cellIndex.y != (jello.resolution - 1)) F(0, 1, 1)
-    else if (cellIndex.z != (jello.resolution - 1)) F(0, 0, 1)
-    else if (cellIndex.y != (jello.resolution - 1)) F(0, 1, 0)
-    else F(0, 0, 0)
-
-    // F100
-    if (cellIndex.x != (jello.resolution - 1)) F(1, 0, 0)
-    else F(0, 0, 0)
-
-    // F101
-    if (cellIndex.z != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 0, 1)
-    else if (cellIndex.z != (jello.resolution - 1)) F(0, 0, 1)
-    else if (cellIndex.x != (jello.resolution - 1)) F(1, 0, 0)
-    else F(0, 0, 0)
-
-    // F110
-    if (cellIndex.y != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 1, 0)
-    else if (cellIndex.y != (jello.resolution - 1)) F(0, 1, 0)
-    else if (cellIndex.x != (jello.resolution - 1)) F(1, 0, 0)
-    else F(0, 0, 0)
-
-    // F111
-    if (cellIndex.z != (jello.resolution - 1) && cellIndex.y != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 1, 1)
-    else if (cellIndex.z != (jello.resolution - 1) && cellIndex.y != (jello.resolution - 1)) F(0, 1, 1)
-    else if (cellIndex.z != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 0, 1)
-    else if (cellIndex.y != (jello.resolution - 1) && cellIndex.x != (jello.resolution - 1)) F(1, 1, 0)
-    else if (cellIndex.z != (jello.resolution - 1)) F(0, 0, 1)
-    else if (cellIndex.y != (jello.resolution - 1)) F(0, 1, 0)
-    else if (cellIndex.x != (jello.resolution - 1)) F(1, 0, 0)
-    else F(0, 0, 0)
-
-//    std::cout << "count: " << forces.size() << std::endl;
     return forces;
-
 }
 
 /**
@@ -432,6 +409,8 @@ point computeExternalForce(const struct world & jello, const point &p)
  */
 void computeAccelerationForExternalForces(const struct world * jello, struct point a[8][8][8], double invM)
 {
+    if (jello->resolution < 2) return;
+
     for (int i=0; i<=7; i++)
         for (int j=0; j<=7; j++)
             for (int k=0; k<=7; k++)
@@ -490,6 +469,55 @@ void Euler(struct world * jello)
         jello->v[i][j][k].z += jello->dt * a[i][j][k].z;
 
       }
+}
+
+/**
+ * performs one step of MidPoint Integration
+ * as a result, updates the jello structure
+ * @param jello - jello state
+ */
+void MidPoint(struct world * jello)
+{
+    point F1p[8][8][8], F1v[8][8][8],
+          F2p[8][8][8], F2v[8][8][8];
+
+    point a[8][8][8];
+
+    struct world buffer;
+
+    int i,j,k;
+
+    buffer = *jello; // make a copy of jello
+    current_time += jello->dt;
+    computeAcceleration(jello, a);
+
+    for (i=0; i<=7; i++)
+        for (j=0; j<=7; j++)
+            for (k=0; k<=7; k++)
+            {
+                pMULTIPLY(jello->v[i][j][k],jello->dt,F1p[i][j][k]);
+                pMULTIPLY(a[i][j][k],jello->dt,F1v[i][j][k]);
+                pMULTIPLY(F1p[i][j][k],0.5,buffer.p[i][j][k]);
+                pMULTIPLY(F1v[i][j][k],0.5,buffer.v[i][j][k]);
+                pSUM(jello->p[i][j][k],buffer.p[i][j][k],buffer.p[i][j][k]);
+                pSUM(jello->v[i][j][k],buffer.v[i][j][k],buffer.v[i][j][k]);
+            }
+
+    computeAcceleration(&buffer, a);
+
+    for (i=0; i<=7; i++)
+        for (j=0; j<=7; j++)
+            for (k=0; k<=7; k++)
+            {
+                // F2p = dt * buffer.v;
+                pMULTIPLY(buffer.v[i][j][k],jello->dt,F2p[i][j][k]);
+                // F2v = dt * a(buffer.p,buffer.v);
+                pMULTIPLY(a[i][j][k],jello->dt,F2v[i][j][k]);
+                pMULTIPLY(F2p[i][j][k],0.5,buffer.p[i][j][k]);
+                pMULTIPLY(F2v[i][j][k],0.5,buffer.v[i][j][k]);
+                pSUM(jello->p[i][j][k],buffer.p[i][j][k],buffer.p[i][j][k]);
+                pSUM(jello->v[i][j][k],buffer.v[i][j][k],buffer.v[i][j][k]);
+            }
 }
 
 /* performs one step of RK4 Integration */

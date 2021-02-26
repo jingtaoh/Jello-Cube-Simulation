@@ -50,8 +50,8 @@ void myinit()
   glLoadIdentity();
   gluPerspective(90.0,1.0,0.01,1000.0);
 
-  // set background color to grey
-  glClearColor(0.5, 0.5, 0.5, 0.0);
+  // set background color to black
+  glClearColor(0.1, 0.1, 0.1, 0.1);
 
   glCullFace(GL_BACK);
   glEnable(GL_CULL_FACE);
@@ -212,7 +212,10 @@ void display()
 
   // show the inclined plane if exist
   showInclinedPlane(jello, boundingBox);
- 
+
+  showAxis();
+//  showForceField(jello, boundingBox);
+
   glutSwapBuffers();
 }
 
