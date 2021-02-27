@@ -130,6 +130,18 @@ void keyboardFunc (unsigned char key, int x, int y)
       R += 0.2;
       break;
 
+    case 'r':
+      rotate = !rotate;
+      break;
+
+    case 'd':
+      displayInfo = !displayInfo;
+      break;
+
+      case 'a':
+        animateOn = true;
+        break;
+
     case ' ':
       saveScreenToFile = 1 - saveScreenToFile;
       break;

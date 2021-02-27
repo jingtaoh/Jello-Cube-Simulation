@@ -18,5 +18,6 @@ double intersect(const ray &r, const plane &pl);
 void showInclinedPlane(const struct world & jello, const bbox &box);
 void showAxis();
 void showText(int winW, int winH);
+void showCornellBox(const bbox &box);
 
 #endif

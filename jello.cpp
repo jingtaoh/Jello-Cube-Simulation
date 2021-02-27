@@ -15,9 +15,9 @@
 #include "performanceCounter.h"
 
 // camera parameters
-double Theta = pi / 6;
-double Phi = pi / 6;
-double R = 6;
+double Theta = 0 /*pi / 6*/;
+double Phi = 0 /*pi / 6*/;
+double R = 6.4;
 
 // mouse control
 int g_iMenuId;
@@ -28,7 +28,7 @@ int g_iLeftMouseButton,g_iMiddleMouseButton,g_iRightMouseButton;
 int sprite=0;
 
 // these variables control what is displayed on screen
-int shear=0, bend=0, structural=1, pause=0, viewingMode=0, saveScreenToFile=0;
+int shear=0, bend=0, structural=1, pause=0, viewingMode=1, saveScreenToFile=0;
 
 struct world jello;
 
@@ -39,6 +39,9 @@ point cellWidth;
 double current_time = 0;
 bool stop;
 bool debug;
+bool rotate = false;
+bool displayInfo = true;
+bool animateOn = false;
 
 PerformanceCounter counter;
 double timePerFrame;
@@ -51,8 +54,8 @@ void myinit()
   glLoadIdentity();
   gluPerspective(90.0,1.0,0.01,1000.0);
 
-  // set background color to black
-  glClearColor(0.1, 0.1, 0.1, 0.1);
+  // set background color to yellowish
+  glClearColor(245.0 / 255, 219.0 / 255, 168.0 / 255, 1);
 
   glCullFace(GL_BACK);
   glEnable(GL_CULL_FACE);
@@ -199,29 +202,28 @@ void display()
   LIGHTSETUP (6);
   LIGHTSETUP (7);
 
+   glEnable(GL_DEPTH_TEST);
+   glEnable(GL_MULTISAMPLE);
   // show the bounding box
-  showBoundingBox(boundingBox);
-  showText(windowWidth, windowHeight);
+//  showBoundingBox(boundingBox);
+
+  showCornellBox(boundingBox);
+  if (displayInfo)
+        showText(windowWidth, windowHeight);
 
   if (debug)
     showAxis();
 
-    // enable lighting
-    glEnable(GL_LIGHTING);
-    glEnable(GL_DEPTH_TEST);
-    // enable blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // blending function.
-
-    // show the transparent cube
-    showCube(&jello);
-
-    glDisable(GL_LIGHTING);
-
     // show the inclined plane if exist
     showInclinedPlane(jello, boundingBox);
 
-    glDisable(GL_BLEND);
+    // enable lighting
+    glEnable(GL_LIGHTING);
+    // enable blending
+
+    showCube(&jello);
+
+    glDisable(GL_LIGHTING);
 
   glutSwapBuffers();
 }
@@ -236,10 +238,23 @@ void computeFPS()
     counter.StartCounter();
 }
 
+void animate()
+{
+    rotate = true;
+    displayInfo = false;
+    saveScreenToFile = 1;
+}
+
 void doIdle()
 {
 
     computeFPS();
+
+    if (animateOn)
+        animate();
+
+    if (rotate) // rotate camera
+        Phi += 0.01;
 
   char s[20]="picxxxx.ppm";
   int i;
@@ -259,7 +274,9 @@ void doIdle()
 
   if (sprite >= 300) // allow only 300 snapshots
   {
-    exit(0);	
+//    exit(0);
+    animateOn = false;
+    std::cout << "images are ready" << std::endl;
   }
 
   if (pause == 0 && !stop)
@@ -309,7 +326,7 @@ int main (int argc, char ** argv)
   glutInit(&argc,argv);
   
   /* double buffered window, use depth testing, 640x480 */
-  glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+  glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE);
   
   windowWidth = 1280 /*640*/;
   windowHeight = 960 /*480*/;

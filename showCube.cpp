@@ -82,7 +82,7 @@ void showCube(struct world * jello)
  
   if (viewingMode==0) // render wireframe
   {
-    glLineWidth(1);
+    glLineWidth(2);
     glPointSize(5);
     glDisable(GL_LIGHTING);
     for (i=0; i<=7; i++)
@@ -143,6 +143,7 @@ void showCube(struct world * jello)
   
   else
   {
+
     glPolygonMode(GL_FRONT, GL_FILL); 
     
     for (face=1; face <= 6; face++) 
@@ -191,7 +192,10 @@ void showCube(struct world * jello)
           counter[i+1][j+1]++;
         }
 
-      
+        // make jello cube transparent
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // blending function
+
         /* the actual rendering */
         for (j=1; j<=7; j++) 
         {
@@ -213,7 +217,8 @@ void showCube(struct world * jello)
           }
           glEnd();
         }
-        
+
+        glDisable(GL_BLEND);
         
     }  
   } // end for loop over faces
@@ -278,7 +283,7 @@ void showBoundingBox(const bbox &box)
   
   glEnd();
 
-  return;
+    return;
 }
 
 /**
@@ -342,26 +347,20 @@ void showInclinedPlane(const struct world & jello, const bbox &box)
 
     // render inclined plane
 
-    glColor4f(COLOR(223),COLOR(70),COLOR(38),0.8);
+    glColor4f(0, 0, 1,0.7);
 
-    glDisable(GL_CULL_FACE);
-
+    glDisable(GL_CULL_FACE);   // render both sides
+    glEnable(GL_BLEND);        // transparent
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // blending function
     glBegin(GL_TRIANGLE_STRIP);
 
     // triangle mode
     for (auto i : intersections) {
         glVertex3f(i.x, i.y, i.z);
     }
-    // line mode
-//    for (int i = 0; i < intersections.size() - 1; i++) {
-//        glVertex3f(intersections[i].x, intersections[i].y, intersections[i].z);
-//        glVertex3f(intersections[i + 1].x, intersections[i + 1].y, intersections[i + 1].z);
-//    }
-//    glVertex3f(intersections[intersections.size() - 1].x, intersections[intersections.size() - 1].y, intersections[intersections.size() - 1].z);
-//    glVertex3f(intersections[0].x, intersections[0].y, intersections[0].z);
 
     glEnd();
-
+    glDisable(GL_BLEND);
     glEnable(GL_CULL_FACE);
 
     return;
@@ -438,4 +437,96 @@ void showText(int winW, int winH)
     glPopMatrix();
 
     glFlush();
+}
+
+void showCornellBox(const bbox &box)
+{
+    glBegin(GL_QUADS);
+
+    // Surface Geometry and color
+
+    glColor4f(0.9f, 0.9f, 0.9f, 0.7f);    // white
+
+    // Floor - white - render both sides
+    glVertex3f(box.max.x, box.min.y, box.min.z);
+    glVertex3f(box.max.x, box.max.y, box.min.z);
+    glVertex3f(box.min.x, box.max.y, box.min.z);
+    glVertex3f(box.min.x, box.min.y, box.min.z);
+
+    // Ceiling - white - render both sides
+    glVertex3f(box.max.x, box.min.y, box.max.z);
+    glVertex3f(box.min.x, box.min.y, box.max.z);
+    glVertex3f(box.min.x, box.max.y, box.max.z);
+    glVertex3f(box.max.x, box.max.y, box.max.z);
+
+    // Back wall - white
+    glVertex3f(box.min.x, box.min.y, box.min.z);
+    glVertex3f(box.min.x, box.max.y, box.min.z);
+    glVertex3f(box.min.x, box.max.y, box.max.z);
+    glVertex3f(box.min.x, box.min.y, box.max.z);
+
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);    // white
+
+    // Light - white
+    glVertex3f(box.max.x * 0.25, box.min.y * 0.25, box.max.z - 0.01);
+    glVertex3f(box.min.x * 0.25, box.min.y * 0.25, box.max.z - 0.01);
+    glVertex3f(box.min.x * 0.25, box.max.y * 0.25, box.max.z - 0.01);
+    glVertex3f(box.max.x * 0.25, box.max.y * 0.25, box.max.z - 0.01);
+
+    // Front wall - blue
+    glColor4f(0.0, 97.0 / 255, 212.0/ 255, 0.7f);    // green
+    glVertex3f(box.max.x, box.min.y, box.min.z);
+    glVertex3f(box.max.x, box.min.y, box.max.z);
+    glVertex3f(box.max.x, box.max.y, box.max.z);
+    glVertex3f(box.max.x, box.max.y, box.min.z);
+
+    // Right wall - green
+    glColor4f(53.0 / 255, 130.0 / 255, 9.0/ 255, 0.7f);    // green
+    glVertex3f(box.min.x, box.max.y, box.max.z);
+    glVertex3f(box.min.x, box.max.y, box.min.z);
+    glVertex3f(box.max.x, box.max.y, box.min.z);
+    glVertex3f(box.max.x, box.max.y, box.max.z);
+
+    // Left wall - red
+    glColor4f(1.0f, 0.0f, 0.0f, 0.7f);    // red
+    glVertex3f(box.min.x, box.min.y, box.max.z);
+    glVertex3f(box.max.x, box.min.y, box.max.z);
+    glVertex3f(box.max.x, box.min.y, box.min.z);
+    glVertex3f(box.min.x, box.min.y, box.min.z);
+
+    glEnd();
+
+    // draw boundary between each face
+    glLineWidth(1);
+    glBegin(GL_LINES);
+    glColor4f(0.5f, 0.5f, 0.5f, 0.8f);    // grey
+
+    # define OFFSET(v,axis) \
+        (#v == "max") ? (box.max.axis - 0.001) : (box.min.axis + 0.001) \
+
+    // Side lines
+    glVertex3f(OFFSET(max,x),OFFSET(min,y),OFFSET(min,z)); glVertex3f(OFFSET(min,x),OFFSET(min,y),OFFSET(min,z));
+    glVertex3f(OFFSET(max,x),OFFSET(min,y),OFFSET(max,z)); glVertex3f(OFFSET(min,x),OFFSET(min,y),OFFSET(max,z));
+
+    glVertex3f(OFFSET(max,x),OFFSET(max,y),OFFSET(min,z)); glVertex3f(OFFSET(min,x),OFFSET(max,y),OFFSET(min,z));
+    glVertex3f(OFFSET(max,x),OFFSET(max,y),OFFSET(max,z)); glVertex3f(OFFSET(min,x),OFFSET(max,y),OFFSET(max,z));
+
+    // Vertical lines
+    glVertex3f(OFFSET(min,x),OFFSET(min,y),OFFSET(min,z)); glVertex3f(OFFSET(min,x),OFFSET(min,y),OFFSET(max,z));
+    glVertex3f(OFFSET(min,x),OFFSET(max,y),OFFSET(min,z)); glVertex3f(OFFSET(min,x),OFFSET(max,y),OFFSET(max,z));
+
+    glVertex3f(OFFSET(max,x),OFFSET(min,y),OFFSET(min,z)); glVertex3f(OFFSET(max,x),OFFSET(min,y),OFFSET(max,z));
+    glVertex3f(OFFSET(max,x),OFFSET(max,y),OFFSET(min,z)); glVertex3f(OFFSET(max,x),OFFSET(max,y),OFFSET(max,z));
+
+    // Horizontal lines
+    glVertex3f(OFFSET(min,x),OFFSET(max,y),OFFSET(min,z)); glVertex3f(OFFSET(min,x),OFFSET(min,y),OFFSET(min,z));
+    glVertex3f(OFFSET(min,x),OFFSET(max,y),OFFSET(max,z)); glVertex3f(OFFSET(min,x),OFFSET(min,y),OFFSET(max,z));
+
+    glVertex3f(OFFSET(max,x),OFFSET(max,y),OFFSET(min,z)); glVertex3f(OFFSET(max,x),OFFSET(min,y),OFFSET(min,z));
+    glVertex3f(OFFSET(max,x),OFFSET(max,y),OFFSET(max,z)); glVertex3f(OFFSET(max,x),OFFSET(min,y),OFFSET(max,z));
+
+    glEnd();
+
+    return;
+
 }

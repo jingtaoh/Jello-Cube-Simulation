@@ -282,7 +282,10 @@ extern std::vector<spring> structuralSprings, shearSprings, bendSprings;    // d
 extern double current_time; // current time step
 extern bool stop;           // true if program stop in debug mode, otherwise false
 extern bool debug;          // true if debug mode are enabled, otherwise false
+extern bool rotate;         // true if the camera is rotating, otherwise false
+extern bool displayInfo;    // true if the info is wanted, otherwise false
 extern double timePerFrame; // elapsed time between two frames
+extern bool animateOn;      // true if animation is being recorded, otherwise false
 
 #endif
 
