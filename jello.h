@@ -291,6 +291,7 @@ extern std::vector<spring> structuralSprings, shearSprings, bendSprings;
 extern double current_time;
 extern bool stop;
 extern bool debug;
+extern double timePerFrame;
 
 #endif
 

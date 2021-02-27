@@ -32,17 +32,15 @@ point interpolate(const point &bc, const std::vector<point> &forces);
 point computeExternalForce(const struct world & jello, const point &p);
 void computeAccelerationForExternalForces(const struct world * jello, struct point a[8][8][8], double invM);
 
+// TODO : interactive forces
+
 void computeAcceleration(struct world * jello, struct point a[8][8][8]);
 
 // perform one step of Euler and Runge-Kutta-4th-order integrators
 // updates the jello structure accordingly
 void Euler(struct world * jello);
 void RK4(struct world * jello);
-// TODO : MidPoint Integration
 void MidPoint(struct world * jello);
-
-// non-physical move down
-void MoveDown(struct world * jello);
 
 #endif
 

@@ -7,6 +7,7 @@
 
 #include "jello.h"
 #include "showCube.h"
+#include <string>
 
 #define COLOR(val) \
         (val) * inv\
@@ -411,37 +412,41 @@ void showAxis()
 }
 
 /**
- * Draw Force Field
- * @param jello - jello state
- * @param box - bounding box
+ * Display name, integration method and FPS
  */
-void showForceField(const struct world & jello, const bbox &box)
+void showText(int winW, int winH)
 {
-    #define GET_COORD(axis, ind) \
-        (box.min.axis + (box.max.axis - box.min.axis) * (1.0 * ind / (jello.resolution-1))) \
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0.0, winW, 0.0, winH);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
 
-    #define GET_FORCE(axis) \
-        abs(jello.forceField[(i) * jello.resolution * jello.resolution + (j) * jello.resolution + (k)].axis) / jello.mass \
+    std::string name = "Name: Jingtao Huang";
+    std::string integrator = "Integrator: " + std::string(jello.integrator);
+    std::string fps = "FPS: " + std::to_string(int(1.0 / timePerFrame));
 
-    int i,j,k;
-//    double max = std::numeric_limits<double>::min();
-//    for (i=0; i<= jello.resolution-1; i++)
-//        for (j=0; j<= jello.resolution-1; j++)
-//            for (k=0; k<= jello.resolution-1; k++)
-//            {
-//                if (jello.forceField[(i) * jello.resolution * jello.resolution + (j) * jello.resolution + (k)].x > max)
-//                    max = jello.forceField[(i) * jello.resolution * jello.resolution + (j) * jello.resolution + (k)].x;
-//            }
+    std::vector<std::string> texts {name, integrator, fps};
+    void * font = GLUT_BITMAP_9_BY_15;
+    int idx = texts.size();
+    for (auto t : texts)
+    {
+        glRasterPos2i(20, 20 * idx);
+        for (std::string::iterator i = t.begin(); i != t.end(); ++i)
+        {
+            char c = *i;
+//            glColor3d(1.0, 0.0, 0.0);
+            glutBitmapCharacter(font, c);
+        }
+        idx--;
+    }
 
-    glBegin(GL_POINTS);
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
 
-    for (i=0; i<= 29; i++)
-        for (j=0; j<= 29; j++)
-            for (k=14; k<= 15; k++)
-            {
-                glColor4f(GET_FORCE(x), GET_FORCE(y), GET_FORCE(z),0);
-                glVertex3f(GET_COORD(x, i), GET_COORD(y, j), GET_COORD(z, k));
-            }
-
-    glEnd();
+    glFlush();
 }

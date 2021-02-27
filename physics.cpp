@@ -614,18 +614,3 @@ void RK4(struct world * jello)
 
   return;  
 }
-
-/* har code non-physical sequence movement */
-/* as a result, updates the jello structure */
-void MoveDown(struct world * jello)
-{
-    int i,j,k;
-    double velocity = 1.0;
-
-    for (i=0; i<=7; i++)
-        for (j=0; j<=7; j++)
-            for (k=0; k<=7; k++)
-            {
-                jello->p[i][j][k].z -= jello->dt * velocity;
-            }
-}

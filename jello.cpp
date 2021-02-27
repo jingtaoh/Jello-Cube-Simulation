@@ -41,6 +41,7 @@ bool stop;
 bool debug;
 
 PerformanceCounter counter;
+double timePerFrame;
 
 int windowWidth, windowHeight;
 
@@ -200,10 +201,10 @@ void display()
 
   // show the bounding box
   showBoundingBox(boundingBox);
+  showText(windowWidth, windowHeight);
 
   if (debug)
     showAxis();
-//  showForceField(jello, boundingBox);
 
     // enable lighting
     glEnable(GL_LIGHTING);
@@ -212,7 +213,7 @@ void display()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // blending function.
 
-    // show the cube
+    // show the transparent cube
     showCube(&jello);
 
     glDisable(GL_LIGHTING);
@@ -231,14 +232,14 @@ void display()
 void computeFPS()
 {
     counter.StopCounter();
-    std::cout << "FPS = " << 1 / counter.GetElapsedTime() << std::endl;
+    timePerFrame = counter.GetElapsedTime();
     counter.StartCounter();
 }
 
 void doIdle()
 {
 
-//    computeFPS();
+    computeFPS();
 
   char s[20]="picxxxx.ppm";
   int i;

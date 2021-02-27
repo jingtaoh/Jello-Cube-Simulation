@@ -19,4 +19,6 @@ void showInclinedPlane(const struct world & jello, const bbox &box);
 void showAxis();
 void showForceField(const struct world & jello, const bbox &box);
 
+void showText(int winW, int winH);
+
 #endif
