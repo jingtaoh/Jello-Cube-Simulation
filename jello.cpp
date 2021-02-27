@@ -267,6 +267,7 @@ void doIdle()
 
       // insert code which appropriately performs one step of the cube simulation:
       if (strcmp(jello.integrator, "Euler") == 0) Euler(&jello);
+      else if (strcmp(jello.integrator, "MP") == 0) MidPoint(&jello);
       else if (strcmp(jello.integrator, "RK4") == 0) RK4(&jello);
 
       if (debug) stop = true;
@@ -301,6 +302,7 @@ int main (int argc, char ** argv)
   cellWidth = computeCellWidth(jello, boundingBox);
 
   if (strcmp(jello.integrator, "Euler") == 0) std::cout << "Integrator: Euler" << std::endl;
+  else if (strcmp(jello.integrator, "MP") == 0) std::cout << "Integrator: MidPoint" << std::endl;
   else if (strcmp(jello.integrator, "RK4") == 0) std::cout << "Integrator: RK4" << std::endl;
 
   glutInit(&argc,argv);
