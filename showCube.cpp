@@ -8,6 +8,11 @@
 #include "jello.h"
 #include "showCube.h"
 
+#define COLOR(val) \
+        (val) * inv\
+
+double inv = 1.0 / 255;
+
 int pointMap(int side, int i, int j)
 {
   int r;
@@ -87,8 +92,8 @@ void showCube(struct world * jello)
             continue;
 
           glBegin(GL_POINTS); // draw point
-            glColor4f(0,0,0,0);  
-            glVertex3f(jello->p[i][j][k].x,jello->p[i][j][k].y,jello->p[i][j][k].z);        
+          glColor4f(0,0,0,0);
+          glVertex3f(jello->p[i][j][k].x,jello->p[i][j][k].y,jello->p[i][j][k].z);
           glEnd();
 
           //
@@ -99,7 +104,7 @@ void showCube(struct world * jello)
           // structural
           if (structural == 1)
           {
-            glColor4f(0,0,1,1);
+            glColor4f(COLOR(70),COLOR(123),COLOR(162),1);
             PROCESS_NEIGHBOUR(1,0,0);
             PROCESS_NEIGHBOUR(0,1,0);
             PROCESS_NEIGHBOUR(0,0,1);
@@ -111,7 +116,7 @@ void showCube(struct world * jello)
           // shear
           if (shear == 1)
           {
-            glColor4f(0,1,0,1);
+            glColor4f(COLOR(149),COLOR(193),COLOR(95),1);
             PROCESS_NEIGHBOUR(1,1,0);
             PROCESS_NEIGHBOUR(-1,1,0);
 //            PROCESS_NEIGHBOUR(-1,-1,0);
@@ -138,7 +143,7 @@ void showCube(struct world * jello)
           // bend
           if (bend == 1)
           {
-            glColor4f(1,0,0,1);
+            glColor4f(COLOR(223),COLOR(70),COLOR(38),1);
             PROCESS_NEIGHBOUR(2,0,0);
             PROCESS_NEIGHBOUR(0,2,0);
             PROCESS_NEIGHBOUR(0,0,2);
@@ -352,7 +357,7 @@ void showInclinedPlane(const struct world & jello, const bbox &box)
 
     // render inclined plane
 
-    glColor4f(1,0,0,0);
+    glColor4f(COLOR(223),COLOR(70),COLOR(38),0.8);
 
     glDisable(GL_CULL_FACE);
 
@@ -385,17 +390,17 @@ void showAxis()
 
     glBegin(GL_LINES);
 
-    glColor4f(1,0,0,0);
+    glColor4f(COLOR(223),COLOR(70),COLOR(38),0);
 
     glVertex3f(0, 0, 0);
     glVertex3f(3, 0, 0);
 
-    glColor4f(0,1,0,0);
+    glColor4f(COLOR(149),COLOR(193),COLOR(95),0);
 
     glVertex3f(0, 0, 0);
     glVertex3f(0, 3, 0);
 
-    glColor4f(0,0,1,0);
+    glColor4f(COLOR(70),COLOR(123),COLOR(162),0);
 
     glVertex3f(0, 0, 0);
     glVertex3f(0, 0, 3);

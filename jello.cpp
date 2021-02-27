@@ -164,10 +164,10 @@ void display()
   
   // jelly material color
 
-  GLfloat mKa[] = { 0.0, 0.0, 0.0, 1.0 };   // black
-  GLfloat mKd[] = { 0.3, 0.3, 0.3, 1.0 };   // grey
-  GLfloat mKs[] = { 1.0, 1.0, 1.0, 1.0 };   // white
-  GLfloat mKe[] = { 0.0, 0.0, 0.0, 1.0 };
+  GLfloat mKa[] = { 0.8, 0.32, 0.086, 0.8 };
+  GLfloat mKd[] = { 0.8, 0.32, 0.086, 0.8 };
+  GLfloat mKs[] = { 0.8, 0.32, 0.086, 0.8 };
+  GLfloat mKe[] = { 0.8, 0.32, 0.086, 0.8 };
 
   /* set up lighting */
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, aGa);
@@ -198,23 +198,29 @@ void display()
   LIGHTSETUP (6);
   LIGHTSETUP (7);
 
-  // enable lighting
-  glEnable(GL_LIGHTING);    
-  glEnable(GL_DEPTH_TEST);
-
-  // show the cube
-  showCube(&jello);
-
-  glDisable(GL_LIGHTING);
-
   // show the bounding box
   showBoundingBox(boundingBox);
 
-  // show the inclined plane if exist
-  showInclinedPlane(jello, boundingBox);
-
-  showAxis();
+  if (debug)
+    showAxis();
 //  showForceField(jello, boundingBox);
+
+    // enable lighting
+    glEnable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
+    // enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // blending function.
+
+    // show the cube
+    showCube(&jello);
+
+    glDisable(GL_LIGHTING);
+
+    // show the inclined plane if exist
+    showInclinedPlane(jello, boundingBox);
+
+    glDisable(GL_BLEND);
 
   glutSwapBuffers();
 }
