@@ -9,7 +9,7 @@
 #include "physics.h"
 
 /**
- * generate 3 kinds of springs from the world configuration
+ * Generate mass spring system
  * @param jello - Jello structure
  */
 void generateSprings(const struct world & jello)
@@ -39,35 +39,22 @@ void generateSprings(const struct world & jello)
                     PROCESS_NEIGHBOUR(1,0,0,structuralSprings);
                     PROCESS_NEIGHBOUR(0,1,0,structuralSprings);
                     PROCESS_NEIGHBOUR(0,0,1,structuralSprings);
-//                    PROCESS_NEIGHBOUR(-1,0,0,structuralSprings);
-//                    PROCESS_NEIGHBOUR(0,-1,0,structuralSprings);
-//                    PROCESS_NEIGHBOUR(0,0,-1,structuralSprings);
                 }
                 // shear springs
                 {
                     scale = sqrt(2.0);
                     PROCESS_NEIGHBOUR(1,1,0,shearSprings);
                     PROCESS_NEIGHBOUR(-1,1,0,shearSprings);
-//                    PROCESS_NEIGHBOUR(-1,-1,0,shearSprings);
-//                    PROCESS_NEIGHBOUR(1,-1,0, shearSprings);
                     PROCESS_NEIGHBOUR(0,1,1,shearSprings);
                     PROCESS_NEIGHBOUR(0,-1,1,shearSprings);
-//                    PROCESS_NEIGHBOUR(0,-1,-1,shearSprings);
-//                    PROCESS_NEIGHBOUR(0,1,-1,shearSprings);
                     PROCESS_NEIGHBOUR(1,0,1,shearSprings);
                     PROCESS_NEIGHBOUR(-1,0,1,shearSprings);
-//                    PROCESS_NEIGHBOUR(-1,0,-1,shearSprings);
-//                    PROCESS_NEIGHBOUR(1,0,-1,shearSprings);
 
                     scale = sqrt(3.0);
                     PROCESS_NEIGHBOUR(1,1,1,shearSprings);
                     PROCESS_NEIGHBOUR(-1,1,1,shearSprings);
                     PROCESS_NEIGHBOUR(-1,-1,1,shearSprings);
                     PROCESS_NEIGHBOUR(1,-1,1,shearSprings);
-//                    PROCESS_NEIGHBOUR(1,1,-1,shearSprings)
-//                    PROCESS_NEIGHBOUR(-1,1,-1,shearSprings)
-//                    PROCESS_NEIGHBOUR(-1,-1,-1,shearSprings)
-//                    PROCESS_NEIGHBOUR(1,-1,-1,shearSprings)
                 }
                 // bend springs
                 {
@@ -75,9 +62,6 @@ void generateSprings(const struct world & jello)
                     PROCESS_NEIGHBOUR(2,0,0,bendSprings);
                     PROCESS_NEIGHBOUR(0,2,0,bendSprings);
                     PROCESS_NEIGHBOUR(0,0,2,bendSprings);
-//                    PROCESS_NEIGHBOUR(-2,0,0,bendSprings);
-//                    PROCESS_NEIGHBOUR(0,-2,0,bendSprings);
-//                    PROCESS_NEIGHBOUR(0,0,-2,bendSprings);
                 }
             }
 }
@@ -92,6 +76,8 @@ void generateSprings(const struct world & jello)
  */
 void computeElasticForce(double k, double r, const struct point & p1, const struct point & p2, struct point & e)
 {
+    // E = -k_h * (|L| - R) * (L/|L|)
+
     point l;
     pDIFFERENCE(p1, p2, l);
     double length;
@@ -110,6 +96,8 @@ void computeElasticForce(double k, double r, const struct point & p1, const stru
   */
 void computeDamping(double k, const struct point & p1, const struct point & p2, const struct point & v1, const struct point & v2, struct point & d)
 {
+    // D = -k_d * <(v1 - v2), (L/|L|)> * (L/|L|)
+
     point l;
     pDIFFERENCE(p1, p2, l);
     point v;
@@ -133,13 +121,16 @@ void computeAccelerationForSprings(const struct world * jello, struct point a[8]
     for (const auto &s : springs)
     {
         point e,d;
+        // compute elastic force and damping
         computeElasticForce(jello->kElastic, s.r, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],e);
         computeDamping(jello->dElastic, jello->p[s.i1][s.j1][s.k1], jello->p[s.i2][s.j2][s.k2],
                        jello->v[s.i1][s.j1][s.k1], jello->v[s.i2][s.j2][s.k2],d);
 
+        // a = F / m
         pMULTIPLY(e, invM, e);
         pMULTIPLY(d, invM, d);
 
+        // apply to the first particle
         pSUM(a[s.i1][s.j1][s.k1],e,a[s.i1][s.j1][s.k1]);
         pSUM(a[s.i1][s.j1][s.k1],d,a[s.i1][s.j1][s.k1]);
 
@@ -147,6 +138,7 @@ void computeAccelerationForSprings(const struct world * jello, struct point a[8]
         pMULTIPLY(e,-1,e);
         pMULTIPLY(d,-1,d);
 
+        // apply to the second particle
         pSUM(a[s.i2][s.j2][s.k2],e,a[s.i2][s.j2][s.k2]);
         pSUM(a[s.i2][s.j2][s.k2],d,a[s.i2][s.j2][s.k2]);
     }
@@ -164,6 +156,7 @@ bool isPointInsideBBox(const point &p, bbox b)
       && (p.y >= b.min.y && p.y <= b.max.y)
       && (p.z >= b.min.z && p.z <= b.max.z));
 }
+
 /**
  * check if a point is lie at the positive side of a plane
  * @param pt - point
@@ -245,10 +238,10 @@ bool checkCollisions(const struct world * jello, std::vector<indices> &points, s
  */
 void collisionResponse(std::vector<indices> &points, std::vector<point> &closestPos, std::vector<collisionSpring> &collisionSprings)
 {
-    if (points.size() == 0) // no collision to process
+    if (points.size() == 0) // no collision
         return;
 
-    for (int i = 0; i < points.size(); i++)
+    for (int i = 0; i < points.size(); i++) // create a spring for each collision
     {
         collisionSprings.push_back(collisionSpring(points[i], closestPos[i]));
     }
@@ -266,19 +259,23 @@ void computeAccelerationForCollisions(const struct world * jello, struct point a
     std::vector<point> closestPos;
     std::vector<collisionSpring> collisionSprings;
 
-    if(checkCollisions(jello, points, closestPos))
-        collisionResponse(points, closestPos, collisionSprings);
+    if(checkCollisions(jello, points, closestPos))  // if collision happens
+        collisionResponse(points, closestPos, collisionSprings);    // store current particle and create collision spring
 
+    // compute acceleration for each collision
     for (const auto &s : collisionSprings)
     {
         point e,d;
+        // compute elastic force and damping
         computeElasticForce(jello->kCollision, s.r, jello->p[s.pInd.ix][s.pInd.iy][s.pInd.iz], s.contactPoint,e);
         computeDamping(jello->dCollision, jello->p[s.pInd.ix][s.pInd.iy][s.pInd.iz], s.contactPoint,
                        jello->v[s.pInd.ix][s.pInd.iy][s.pInd.iz], point(0, 0, 0), d);
 
+        // a = F / m
         pMULTIPLY(e, invM, e);
         pMULTIPLY(d, invM, d);
 
+        // apply to the the particle that has collided
         pSUM(a[s.pInd.ix][s.pInd.iy][s.pInd.iz],e,a[s.pInd.ix][s.pInd.iy][s.pInd.iz]);
         pSUM(a[s.pInd.ix][s.pInd.iy][s.pInd.iz],d,a[s.pInd.ix][s.pInd.iy][s.pInd.iz]);
     }
@@ -354,11 +351,9 @@ std::vector<point> computeNeighborForces(const struct world & jello, const point
         (cellIndex.x + (I)) * jello.resolution * jello.resolution + (cellIndex.y + (J)) * jello.resolution + (cellIndex.z + (K))\
 
     #define F(i, j, k) \
-        { forces.push_back(jello.forceField[int(GET_IDX((i), (j), (k)))]);             \
-          /*std::cout << "[" << cellIndex.x + (i) << "][" << cellIndex.y + (j) << "][" << cellIndex.z + (k) << "]" << std::endl;   \
-          std::cout << "F[" << int(GET_IDX((i), (j), (k))) << "] = ";                  \
-          pPRINT(jello.forceField[int(GET_IDX((i), (j), (k)))]); */}  \
+        { forces.push_back(jello.forceField[int(GET_IDX((i), (j), (k)))]);}  \
 
+    // Add neighboring forces to the array and return
     for (int i = 0; i < 2; i++)
         for (int j = 0; j < 2; j++)
             for (int k = 0; k < 2; k++) F(i, j, k);
@@ -411,14 +406,17 @@ void computeAccelerationForExternalForces(const struct world * jello, struct poi
 {
     if (jello->resolution < 2) return;
 
+    // compute external force for each particle
     for (int i=0; i<=7; i++)
         for (int j=0; j<=7; j++)
             for (int k=0; k<=7; k++)
             {
+                // skip if the particle is out of bouding box
                 if (!isPointInsideBBox(jello->p[i][j][k], boundingBox))
                     continue;
+
                 point f = computeExternalForce(*jello, jello->p[i][j][k]);
-                pMULTIPLY(f, invM, f);
+                pMULTIPLY(f, invM, f);  // a = F / m
                 pSUM(a[i][j][k], f, a[i][j][k]);
             }
 }
@@ -437,7 +435,7 @@ void computeAcceleration(struct world * jello, struct point a[8][8][8])
 
     double invM = 1.0 / jello->mass;
 
-    // springs
+    // springs forces and damping
     computeAccelerationForSprings(jello, a, structuralSprings, invM);
     computeAccelerationForSprings(jello, a, shearSprings, invM);
     computeAccelerationForSprings(jello, a, bendSprings, invM);

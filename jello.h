@@ -186,21 +186,25 @@ struct collisionSpring
 
 struct plane
 {
-    double a, b, c, d;
+    double a, b, c, d;  // a plane defined as ax + by + cz + d = 0
+    // constructors
     plane(double pa, double pb, double pc, double pd) : a(pa), b(pb), c(pc), d(pd) {};
     plane() : a(0), b(0), c(0), d(0){};
     plane(point p1, point p2, point p3)
     {
+        // use 3 points to form 2 vectors
         point v1, v2, n;
         pDIFFERENCE(p3, p2, v1);
         pDIFFERENCE(p1, p2, v2);
+        // compute normal use the cross product of two vector
         CROSSPRODUCTp(v1, v2, n);
         double length;
         pNORMALIZE(n);
+        // normal <-> (a, b, c)
         a = n.x; b = n.y; c  = n.z;
         d = - (a * p1.x + b * p1.y + c * p1.z);
-//        print();
     }
+    // print out plane equation
     void print()
     {
         std::cout << "plane: " << a << "x + " << b << "y + " << c << "z + " << d << " = 0" << std::endl;
@@ -209,8 +213,9 @@ struct plane
 
 struct ray
 {
-    point origin;
-    point dir;
+    point origin;   // origin of the ray
+    point dir;      // direction of the ray
+    // constructors
     ray(point p1, point p2) : origin(p1){
         pDIFFERENCE(p2, p1, dir);
         double length;
@@ -221,10 +226,10 @@ struct ray
 
 struct bbox
 {
-    point min;
-    point max;
-    plane planes[6];
-    ray rays[12];
+    point min;  // minimum values in each dimension
+    point max;  // maximum values in each dimension
+    plane planes[6];  // 6 planes
+    ray rays[12];     // 12 edges
     bbox(point pMin, point pMax) : min(pMin), max(pMax){
         planes[0] = plane(point(min.x, min.y, min.z), point(max.x, min.y, min.z), point(max.x, max.y, min.z));  // bottom
         planes[1] = plane(point(max.x, max.y, max.z), point(max.x, min.y, max.z), point(min.x, min.y, max.z));  // top
@@ -232,7 +237,6 @@ struct bbox
         planes[3] = plane(point(max.x, max.y, max.z), point(max.x, max.y, min.z), point(max.x, min.y, min.z));  // right
         planes[4] = plane(point(min.x, min.y, min.z), point(min.x, min.y, max.z), point(max.x, min.y, max.z));  // front
         planes[5] = plane(point(max.x, max.y, max.z), point(min.x, max.y, max.z), point(min.x, max.y, min.z));  // back
-
 
         // create 8 vertices
         std::vector<point> vertices;
@@ -255,43 +259,30 @@ struct bbox
          *      X
          */
 
-        // create 12 edges (store index of vertex)
+        // store indices of vertex for each edge
         std::vector<std::vector<int>> edgeMap
                 {
                         {0, 4}, {1, 5}, {2, 6}, {3, 7}, // in x direction
                         {0, 2}, {1, 3}, {4, 6}, {5, 7}, // in y direction
                         {0, 1}, {2, 3}, {4, 5}, {6, 7}  // in z direction
                 };
-
+        // create 12 edges
         for (int i = 0; i < 12; i++)
         {
             rays[i] = ray(vertices[edgeMap[i][0]], vertices[edgeMap[i][1]]);
         }
     };
-public:
-    void print()
-    {
-        for (int i = 0; i < 6; i++)
-        {
-            planes[i].print();
-        }
-        for (int i = 0; i < 12; i++)
-        {
-            pPRINT(rays[i].origin);
-            pPRINT(rays[i].dir);
-        }
-    }
 };
 
-extern bbox boundingBox;
-extern point cellWidth;
+extern bbox boundingBox;    // bounding box
+extern point cellWidth;     // cell width of force field
 
-extern std::vector<spring> structuralSprings, shearSprings, bendSprings;
+extern std::vector<spring> structuralSprings, shearSprings, bendSprings;    // data structure that stores each type of springs
 
-extern double current_time;
-extern bool stop;
-extern bool debug;
-extern double timePerFrame;
+extern double current_time; // current time step
+extern bool stop;           // true if program stop in debug mode, otherwise false
+extern bool debug;          // true if debug mode are enabled, otherwise false
+extern double timePerFrame; // elapsed time between two frames
 
 #endif
 

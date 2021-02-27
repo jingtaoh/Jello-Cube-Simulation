@@ -109,9 +109,6 @@ void showCube(struct world * jello)
             PROCESS_NEIGHBOUR(1,0,0);
             PROCESS_NEIGHBOUR(0,1,0);
             PROCESS_NEIGHBOUR(0,0,1);
-//            PROCESS_NEIGHBOUR(-1,0,0);
-//            PROCESS_NEIGHBOUR(0,-1,0);
-//            PROCESS_NEIGHBOUR(0,0,-1);
           }
           
           // shear
@@ -120,25 +117,15 @@ void showCube(struct world * jello)
             glColor4f(COLOR(149),COLOR(193),COLOR(95),1);
             PROCESS_NEIGHBOUR(1,1,0);
             PROCESS_NEIGHBOUR(-1,1,0);
-//            PROCESS_NEIGHBOUR(-1,-1,0);
-//            PROCESS_NEIGHBOUR(1,-1,0);
             PROCESS_NEIGHBOUR(0,1,1);
             PROCESS_NEIGHBOUR(0,-1,1);
-//            PROCESS_NEIGHBOUR(0,-1,-1);
-//            PROCESS_NEIGHBOUR(0,1,-1);
             PROCESS_NEIGHBOUR(1,0,1);
             PROCESS_NEIGHBOUR(-1,0,1);
-//            PROCESS_NEIGHBOUR(-1,0,-1);
-//            PROCESS_NEIGHBOUR(1,0,-1);
 
             PROCESS_NEIGHBOUR(1,1,1)
             PROCESS_NEIGHBOUR(-1,1,1)
             PROCESS_NEIGHBOUR(-1,-1,1)
             PROCESS_NEIGHBOUR(1,-1,1)
-//            PROCESS_NEIGHBOUR(1,1,-1)
-//            PROCESS_NEIGHBOUR(-1,1,-1)
-//            PROCESS_NEIGHBOUR(-1,-1,-1)
-//            PROCESS_NEIGHBOUR(1,-1,-1)
           }
           
           // bend
@@ -148,9 +135,6 @@ void showCube(struct world * jello)
             PROCESS_NEIGHBOUR(2,0,0);
             PROCESS_NEIGHBOUR(0,2,0);
             PROCESS_NEIGHBOUR(0,0,2);
-//            PROCESS_NEIGHBOUR(-2,0,0);
-//            PROCESS_NEIGHBOUR(0,-2,0);
-//            PROCESS_NEIGHBOUR(0,0,-2);
           }           
           glEnd();
         }
@@ -350,7 +334,7 @@ void showInclinedPlane(const struct world & jello, const bbox &box)
             intersections.push_back(intersection); \
         } \
 
-    // compute intersections between 12 edges and plane
+    // compute intersections between 12 edges
     std::vector<point> intersections;
     INTERSECT(0, 3, x);
     INTERSECT(4, 7, y);
@@ -391,16 +375,19 @@ void showAxis()
 
     glBegin(GL_LINES);
 
+    // x axis
     glColor4f(COLOR(223),COLOR(70),COLOR(38),0);
 
     glVertex3f(0, 0, 0);
     glVertex3f(3, 0, 0);
 
+    // y axis
     glColor4f(COLOR(149),COLOR(193),COLOR(95),0);
 
     glVertex3f(0, 0, 0);
     glVertex3f(0, 3, 0);
 
+    // z axis
     glColor4f(COLOR(70),COLOR(123),COLOR(162),0);
 
     glVertex3f(0, 0, 0);
@@ -419,11 +406,13 @@ void showText(int winW, int winH)
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
+    // define screen plane
     gluOrtho2D(0.0, winW, 0.0, winH);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
 
+    // text content
     std::string name = "Name: Jingtao Huang";
     std::string integrator = "Integrator: " + std::string(jello.integrator);
     std::string fps = "FPS: " + std::to_string(int(1.0 / timePerFrame));
@@ -433,7 +422,7 @@ void showText(int winW, int winH)
     int idx = texts.size();
     for (auto t : texts)
     {
-        glRasterPos2i(20, 20 * idx);
+        glRasterPos2i(20, 20 * idx);    // location
         for (std::string::iterator i = t.begin(); i != t.end(); ++i)
         {
             char c = *i;
