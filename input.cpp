@@ -138,10 +138,6 @@ void keyboardFunc (unsigned char key, int x, int y)
       displayInfo = !displayInfo;
       break;
 
-      case 'a':
-        animateOn = true;
-        break;
-
     case ' ':
       saveScreenToFile = 1 - saveScreenToFile;
       break;

@@ -41,7 +41,6 @@ bool stop;
 bool debug;
 bool rotate = false;
 bool displayInfo = true;
-bool animateOn = false;
 
 PerformanceCounter counter;
 double timePerFrame;
@@ -203,7 +202,7 @@ void display()
   LIGHTSETUP (7);
 
    glEnable(GL_DEPTH_TEST);
-   glEnable(GL_MULTISAMPLE);
+   glEnable(GL_MULTISAMPLE);    // enable antialiasing
   // show the bounding box
 //  showBoundingBox(boundingBox);
 
@@ -250,9 +249,6 @@ void doIdle()
 
     computeFPS();
 
-    if (animateOn)
-        animate();
-
     if (rotate) // rotate camera
         Phi += 0.01;
 
@@ -274,9 +270,7 @@ void doIdle()
 
   if (sprite >= 300) // allow only 300 snapshots
   {
-//    exit(0);
-    animateOn = false;
-    std::cout << "images are ready" << std::endl;
+    exit(0);
   }
 
   if (pause == 0 && !stop)
